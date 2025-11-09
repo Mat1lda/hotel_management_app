@@ -4,12 +4,78 @@ import '../../utility/app_colors.dart';
 import '../../provider/auth_provider.dart';
 import '../../provider/home_provider.dart';
 import '../../provider/room_provider.dart';
+import '../../provider/review_provider.dart';
 import '../../utility/image_utils.dart';
 
 class HomeTab extends ConsumerWidget {
   const HomeTab({super.key});
 
   void _onBookNowPressed() {
+  }
+
+  Widget _buildMiniInfoCard({
+    required String title,
+    required String distance,
+    required IconData icon,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.cardBackground,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadow.withOpacity(0.06),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, size: 20, color: AppColors.primary),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              title,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                height: 1.2,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              distance,
+              style: const TextStyle(
+                color: AppColors.primary,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _onJoinFreePressed(BuildContext context) {
@@ -84,26 +150,441 @@ class HomeTab extends ConsumerWidget {
               _buildMostExpensive(context),
               _buildRecommendedForYou(context),
               _buildRecentBookings(context, isLoggedIn: true),
-              _buildBestToday(context),
+              //_buildBestToday(context),
             ] else ...[
               _buildHeader(context),
               _buildPromotionBanner(context),
               _buildQuickActions(context),
               _buildAuthSection(context),
               _buildRecommendedForYou(context),
-              _buildFeaturedHotels(context),
+              _buildMostExpensive(context),
               _buildSpecialOffers(context),
+              _buildCustomerReviews(context),
             ],
-            // Content chung cho cả 2 trạng thái
             _buildSpecialOffersShared(context),
-            _buildNearbyHotels(context),
-            _buildCustomerReviews(context),
-            _buildPopularDestinations(context),
-            _buildDiscoverSection(context),
+            _buildAroundHotel(context),
+            _buildFoodAndNature(context),
             const SizedBox(height: 100),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildAroundHotel(BuildContext context) {
+    const description =
+        'Phố cổ Hà Nội thu hút nhiều du khách đến xem biểu diễn ở Nhà hát múa rối Thăng Long hay đi dạo chợ đêm. '
+        'Bạn sẽ tìm thấy sự tĩnh lặng quanh Hồ Hoàn Kiếm, nơi ưa chuộng của người tập Thái Cực Quyền.';
+
+    final nearbyBasics = [
+      {'name': 'Khu Vui Chơi Trẻ Em', 'distance': '500 m', 'icon': Icons.park},
+      {'name': 'Dong Kinh Nghia Thuc Square', 'distance': '550 m', 'icon': Icons.landscape},
+      {'name': 'Ô Quan Chưởng', 'distance': '750 m', 'icon': Icons.account_balance},
+      {'name': 'Vườn Hoa Quang Trung', 'distance': '850 m', 'icon': Icons.local_florist},
+    ];
+
+    final topAttractions = [
+      {'name': 'Hoàng thành Thăng Long', 'distance': '1,6 km'},
+      {'name': 'Bảo tàng mỹ thuật Việt Nam', 'distance': '1,6 km'},
+      {'name': 'Văn Miếu – Quốc Tử Giám', 'distance': '1,8 km'},
+      {'name': 'Bảo tàng lịch sử Quốc gia', 'distance': '1,9 km'},
+      {'name': 'Cầu Long Biên', 'distance': '2,1 km'},
+    ];
+
+    final transport = [
+      {'name': 'Tàu lửa – Ga Hà Nội', 'distance': '1,5 km'},
+    ];
+
+    final airports = [
+      {'name': 'Sân bay Quốc tế Nội Bài', 'distance': '23 km'},
+    ];
+
+    Widget buildTitle(String text) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        child: Text(
+          text,
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
+        ),
+      );
+    }
+
+    Widget buildListCard(List<Map<String, dynamic>> items,
+        {IconData? defaultIcon}) {
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.cardBackground,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.shadow.withOpacity(0.06),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          children: items.map((e) {
+            final icon = e['icon'] as IconData? ?? defaultIcon ?? Icons.place;
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                children: [
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(icon, size: 18, color: AppColors.primary),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      e['name'] as String,
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    e['distance'] as String,
+                    style: const TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }).toList(),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        buildTitle('Xung quanh khách sạn'),
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 20),
+          height: 140,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            image: const DecorationImage(
+              image: NetworkImage(
+                  'https://tl.cdnchinhphu.vn/Uploads/images/pho%20co(2).jpg'),
+              fit: BoxFit.cover,
+            ),
+          ),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.black.withOpacity(0.1),
+                  Colors.black.withOpacity(0.6),
+                ],
+              ),
+            ),
+            padding: const EdgeInsets.all(16),
+            child: Align(
+              alignment: Alignment.bottomLeft,
+              child: Text(
+                description,
+                maxLines: 4,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: AppColors.cardBackground,
+                  fontSize: 13,
+                  height: 1.3,
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+          child: const Text(
+            'Khu vực công cộng?',
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+        buildListCard(nearbyBasics),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+          child: const Text(
+            'Địa điểm tham quan hàng đầu',
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+        buildListCard(topAttractions, defaultIcon: Icons.museum),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+          child: Row(
+            children: [
+              Expanded(
+                child: _buildMiniInfoCard(
+                  title: transport.first['name'] as String,
+                  distance: transport.first['distance'] as String,
+                  icon: Icons.train,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildMiniInfoCard(
+                  title: airports.first['name'] as String,
+                  distance: airports.first['distance'] as String,
+                  icon: Icons.flight_takeoff,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFoodAndNature(BuildContext context) {
+    final restaurants = [
+      {
+        'name': 'Xôi Chè Bà Thìn',
+        'distance': '30 m',
+        'image':
+            'https://mia.vn/media/uploads/blog-du-lich/xoi-che-ba-thin-dia-chi-quen-thuoc-cua-cac-tin-do-me-do-ngot-tai-ha-noi-01-1639324767.jpg'
+      },
+      {
+        'name': 'Nhà Hàng Gecko',
+        'distance': '50 m',
+        'image':
+            'https://mia.vn/media/uploads/blog-du-lich/co-mot-gecko-cafe-restaurant-doc-dao-trong-long-pho-hue-1638919602.jpg'
+      },
+      {
+        'name': 'Nhà Hàng Jackbo',
+        'distance': '50 m',
+        'image':
+            'https://www.yeebo.com.vn/wp-content/uploads/2019/07/dsc01826-e-scaled.jpg'
+      },
+    ];
+
+    final nature = [
+      {
+        'name': 'Hồ Hoàn Kiếm',
+        'distance': '800 m',
+        'image':
+            'https://image-tc.galaxy.tf/wipng-daexn19ej5lhhexs5yjcrc003/vietnam-trip-1.png'
+      },
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          child: Text(
+            'Ăn uống',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
+          ),
+        ),
+        // Restaurants
+        SizedBox(
+          height: 160,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            itemCount: restaurants.length,
+            itemBuilder: (context, index) {
+              final r = restaurants[index];
+              return Container(
+                width: 280,
+                margin: const EdgeInsets.only(right: 12),
+                decoration: BoxDecoration(
+                  color: AppColors.cardBackground,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.shadow.withOpacity(0.08),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 140,
+                      height: 140,
+                      margin: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        image: DecorationImage(
+                          image: NetworkImage(r['image']!),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              r['name']!,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: AppColors.textPrimary,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                height: 1.3,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                const Icon(Icons.place,
+                                    size: 16, color: AppColors.primary),
+                                const SizedBox(width: 4),
+                                Text(
+                                  r['distance']!,
+                                  style: const TextStyle(
+                                    color: AppColors.primary,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 12),
+        // Nature
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+          child: const Text(
+            'Cảnh đẹp thiên nhiên',
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+        SizedBox(
+          height: 160,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            itemCount: nature.length,
+            itemBuilder: (context, index) {
+              final n = nature[index];
+              return Container(
+                width: 300,
+                margin: const EdgeInsets.only(right: 12),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  image: DecorationImage(
+                    image: NetworkImage(n['image']!),
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withOpacity(0.6),
+                      ],
+                    ),
+                  ),
+                  padding: const EdgeInsets.all(16),
+                  child: Align(
+                    alignment: Alignment.bottomLeft,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            n['name']!,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: AppColors.cardBackground,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppColors.cardBackground.withOpacity(0.85),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.place,
+                                  size: 12, color: AppColors.primary),
+                              const SizedBox(width: 4),
+                              Text(
+                                n['distance']!,
+                                style: const TextStyle(
+                                  color: AppColors.textPrimary,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 
@@ -795,25 +1276,17 @@ class HomeTab extends ConsumerWidget {
   }
 
   Widget _buildCustomerReviews(BuildContext context) {
-    final reviews = [
-      {
-        'name': 'Nguyễn Văn A',
-        'rating': 5,
-        'comment': 'Dịch vụ tuyệt vời, phòng sạch sẽ và nhân viên thân thiện.',
-        'hotel': 'Grand Hotel Saigon',
-      },
-      {
-        'name': 'Trần Thị B',
-        'rating': 4,
-        'comment': 'Vị trí thuận lợi, view đẹp. Sẽ quay lại lần sau.',
-        'hotel': 'Luxury Resort Da Nang',
-      },
-    ];
+    return Consumer(
+      builder: (context, ref, child) {
+        final reviewState = ref.watch(reviewProvider);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Padding(
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!reviewState.hasLoaded && !reviewState.isLoading) {
+            ref.read(reviewProvider.notifier).loadLatest(limit: 4);
+          }
+        });
+
+        final title = const Padding(
           padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           child: Text(
             'Đánh giá từ khách hàng',
@@ -823,205 +1296,189 @@ class HomeTab extends ConsumerWidget {
               color: AppColors.textPrimary,
             ),
           ),
-        ),
-        SizedBox(
-          height: 180,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            itemCount: reviews.length,
-            itemBuilder: (context, index) {
-              final review = reviews[index];
-              return Container(
-                width: 280,
-                margin: const EdgeInsets.only(right: 16),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.cardBackground,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.shadow.withOpacity(0.1),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
+        );
+
+        if (reviewState.isLoading && reviewState.reviews.isEmpty) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              title,
+              const SizedBox(
+                height: 180,
+                child: Center(
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                  ),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 20,
-                          backgroundColor: AppColors.primary.withOpacity(0.1),
-                          child: Text(
-                            (review['name'] as String)[0],
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.primary,
-                            ),
-                          ),
+              ),
+            ],
+          );
+        }
+
+        if (reviewState.errorMessage != null && reviewState.reviews.isEmpty) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              title,
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.cardBackground,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.shadow.withOpacity(0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.error_outline, color: AppColors.error),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          reviewState.errorMessage!,
+                          style: const TextStyle(color: AppColors.textSecondary),
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                review['name'] as String,
+                      ),
+                      TextButton(
+                        onPressed: () => ref.read(reviewProvider.notifier).loadLatest(limit: 4),
+                        child: const Text('Thử lại'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          );
+        }
+
+        final items = reviewState.reviews;
+
+        if (items.isEmpty) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [title],
+          );
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            title,
+            SizedBox(
+              height: 180,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                itemCount: items.length,
+                itemBuilder: (context, index) {
+                  final r = items[index];
+                  final String name = r.customerName;
+                  final String initial = name.isNotEmpty ? name.characters.first : '?';
+                  final String dateText = r.day != null
+                      ? '${r.day!.day.toString().padLeft(2, '0')}/${r.day!.month.toString().padLeft(2, '0')}/${r.day!.year}'
+                      : '';
+                  final String footerText = (r.type != null && r.type!.isNotEmpty)
+                      ? r.type!
+                      : dateText;
+
+                  return Container(
+                    width: 280,
+                    margin: const EdgeInsets.only(right: 16),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.cardBackground,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.shadow.withOpacity(0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 20,
+                              backgroundColor: AppColors.primary.withOpacity(0.1),
+                              child: Text(
+                                initial,
                                 style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.textPrimary,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primary,
                                 ),
                               ),
-                              Row(
-                                children: List.generate(5, (i) {
-                                  return Icon(
-                                    Icons.star,
-                                    size: 14,
-                                    color: i < (review['rating'] as int)
-                                        ? AppColors.warning
-                                        : AppColors.iconUnselected,
-                                  );
-                                }),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    name,
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.textPrimary,
+                                    ),
+                                  ),
+                                  Row(
+                                    children: List.generate(5, (i) {
+                                      return Icon(
+                                        Icons.star,
+                                        size: 14,
+                                        color: i < r.star
+                                            ? AppColors.warning
+                                            : AppColors.iconUnselected,
+                                      );
+                                    }),
+                                  ),
+                                ],
                               ),
-                            ],
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          r.details,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: AppColors.textSecondary,
+                            height: 1.4,
+                          ),
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          footerText,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.primary,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 12),
-                    Text(
-                      review['comment'] as String,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: AppColors.textSecondary,
-                        height: 1.4,
-                      ),
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      review['hotel'] as String,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPopularDestinations(BuildContext context) {
-    final destinations = [
-      {
-        'name': 'TP. Hồ Chí Minh',
-        'hotels': '1,200+ khách sạn',
-        'image': 'https://images.unsplash.com/photo-1583417319070-4a69db38a482?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
-      },
-      {
-        'name': 'Đà Nẵng',
-        'hotels': '800+ khách sạn',
-        'image': 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
-      },
-      {
-        'name': 'Hà Nội',
-        'hotels': '1,000+ khách sạn',
-        'image': 'https://images.unsplash.com/photo-1509023464722-18d996393ca8?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
-      },
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-          child: Text(
-            'Điểm đến phổ biến',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
+                  );
+                },
+              ),
             ),
-          ),
-        ),
-        SizedBox(
-          height: 120,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            itemCount: destinations.length,
-            itemBuilder: (context, index) {
-              final destination = destinations[index];
-              return Container(
-                width: 160,
-                margin: const EdgeInsets.only(right: 16),
-                child: InkWell(
-                  onTap: () => _onDestinationPressed(destination['name'] as String),
-                  borderRadius: BorderRadius.circular(12),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      image: DecorationImage(
-                        image: NetworkImage(destination['image'] as String),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.transparent,
-                            Colors.black.withOpacity(0.7),
-                          ],
-                        ),
-                      ),
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            destination['name'] as String,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.cardBackground,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            destination['hotels'] as String,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: AppColors.cardBackground,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-      ],
+          ],
+        );
+      },
     );
   }
+
 
   // Logged-in user layouts
   Widget _buildLoggedInHeader(BuildContext context, User user) {
@@ -2047,256 +2504,4 @@ class HomeTab extends ConsumerWidget {
     );
   }
 
-  Widget _buildNearbyHotels(BuildContext context) {
-    final nearbyHotels = [
-      {
-        'id': '1',
-        'name': 'Hotel Continental Saigon',
-        'location': '132-134 Đồng Khởi, Q1',
-        'distance': '0.8 km',
-        'rating': 4.6,
-        'price': '1,800,000',
-        'image': 'https://images.unsplash.com/photo-1564501049412-61c2a3083791?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
-        'amenities': ['WiFi', 'Pool', 'Gym'],
-      },
-      {
-        'id': '2',
-        'name': 'Park Hyatt Saigon',
-        'location': '2 Lam Son Square, Q1',
-        'distance': '1.2 km',
-        'rating': 4.8,
-        'price': '4,200,000',
-        'image': 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
-        'amenities': ['WiFi', 'Spa', 'Restaurant'],
-      },
-      {
-        'id': '3',
-        'name': 'Caravelle Saigon',
-        'location': '19 Lam Son Square, Q1',
-        'distance': '1.5 km',
-        'rating': 4.4,
-        'price': '2,500,000',
-        'image': 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
-        'amenities': ['WiFi', 'Pool', 'Bar'],
-      },
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Khách sạn gần bạn',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              TextButton(
-                onPressed: _onViewAllPressed,
-                child: const Text(
-                  'Xem tất cả',
-                  style: TextStyle(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          itemCount: nearbyHotels.length,
-          itemBuilder: (context, index) {
-            final hotel = nearbyHotels[index];
-            return Container(
-              margin: const EdgeInsets.only(bottom: 16),
-              child: InkWell(
-                onTap: () => _onHotelPressed(hotel['id'] as String),
-                borderRadius: BorderRadius.circular(12),
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppColors.cardBackground,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.shadow.withOpacity(0.1),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 100,
-                        height: 100,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          image: DecorationImage(
-                            image: NetworkImage(hotel['image'] as String),
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              hotel['name'] as String,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textPrimary,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                const Icon(
-                                  Icons.location_on,
-                                  size: 14,
-                                  color: AppColors.textSecondary,
-                                ),
-                                const SizedBox(width: 4),
-                                Expanded(
-                                  child: Text(
-                                    hotel['location'] as String,
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: AppColors.textSecondary,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                const Icon(
-                                  Icons.directions_walk,
-                                  size: 14,
-                                  color: AppColors.primary,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  hotel['distance'] as String,
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: AppColors.primary,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.star,
-                                      size: 14,
-                                      color: AppColors.warning,
-                                    ),
-                                    const SizedBox(width: 2),
-                                    Text(
-                                      '${hotel['rating']}',
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                        color: AppColors.textPrimary,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Wrap(
-                                    spacing: 4,
-                                    children: (hotel['amenities'] as List<String>)
-                                        .take(2)
-                                        .map((amenity) => Container(
-                                              padding: const EdgeInsets.symmetric(
-                                                horizontal: 6,
-                                                vertical: 2,
-                                              ),
-                                              decoration: BoxDecoration(
-                                                color: AppColors.primary.withOpacity(0.1),
-                                                borderRadius: BorderRadius.circular(8),
-                                              ),
-                                              child: Text(
-                                                amenity,
-                                                style: const TextStyle(
-                                                  fontSize: 10,
-                                                  color: AppColors.primary,
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                              ),
-                                            ))
-                                        .toList(),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  '${hotel['price']}đ/đêm',
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.primary,
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 6,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.primary,
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  child: const Text(
-                                    'Đặt ngay',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.cardBackground,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
-      ],
-    );
-  }
 }
