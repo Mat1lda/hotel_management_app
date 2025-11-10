@@ -27,6 +27,7 @@ class ServiceResponse {
     required this.imageUrls,
   });
 
+
   factory ServiceResponse.fromJson(Map<String, dynamic> json) {
     final dynamic priceRaw = json['price'];
     final double parsedPrice = priceRaw is num ? priceRaw.toDouble() : 0.0;
