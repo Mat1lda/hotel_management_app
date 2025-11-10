@@ -3,7 +3,7 @@ class ServiceResponse {
   final String name;
   final String details;
   final double price;
-  final int isAvaiable;
+  final int isAvailable;
   final String unit;
   final int quantity;
   final int hotelId;
@@ -17,7 +17,7 @@ class ServiceResponse {
     required this.name,
     required this.details,
     required this.price,
-    required this.isAvaiable,
+    required this.isAvailable,
     required this.unit,
     required this.quantity,
     required this.hotelId,
@@ -40,7 +40,7 @@ class ServiceResponse {
       name: (json['name'] as String?)?.trim() ?? '',
       details: (json['details'] as String?)?.trim() ?? '',
       price: parsedPrice,
-      isAvaiable: (json['isAvaiable'] as num?)?.toInt() ?? 0,
+      isAvailable: (json['isAvaiable'] as num?)?.toInt() ?? 0,
       unit: (json['unit'] as String?)?.trim() ?? '',
       quantity: (json['quantity'] as num?)?.toInt() ?? 0,
       hotelId: (json['hotelId'] as num?)?.toInt() ?? 0,
