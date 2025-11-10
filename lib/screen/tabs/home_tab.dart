@@ -6,11 +6,18 @@ import '../../provider/home_provider.dart';
 import '../../provider/room_provider.dart';
 import '../../provider/review_provider.dart';
 import '../../utility/image_utils.dart';
+import '../../provider/service_provider.dart';
+import '../../model/response/room_type_response.dart';
+import '../../utility/navigation_utils.dart';
 
 class HomeTab extends ConsumerWidget {
   const HomeTab({super.key});
 
   void _onBookNowPressed() {
+  }
+
+  void _onRoomPressed(BuildContext context, RoomTypeResponse room) {
+    NavigationUtils.openRoomDetail(context, room);
   }
 
   Widget _buildMiniInfoCard({
@@ -874,85 +881,6 @@ class HomeTab extends ConsumerWidget {
     );
   }
 
-  Widget _buildDiscoverSection(BuildContext context) {
-    final categories = [
-      {'title': 'All-Inclusive', 'image': 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80'},
-      {'title': 'Resort', 'image': 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80'},
-      {'title': 'Biển', 'image': 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80'},
-      {'title': 'Sang trọng', 'image': 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80'},
-      {'title': 'Khách sạn mới', 'image': 'https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80'},
-      {'title': 'Thân thiện thú cưng', 'image': 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80'},
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-          child: Text(
-            'Khám phá chuyến đi tiếp theo',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
-            ),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              childAspectRatio: 1.2,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-            ),
-            itemCount: categories.length,
-            itemBuilder: (context, index) {
-              final category = categories[index];
-              return Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  image: DecorationImage(
-                    image: NetworkImage(category['image']!),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.transparent,
-                        Colors.black.withOpacity(0.7),
-                      ],
-                    ),
-                  ),
-                  padding: const EdgeInsets.all(12),
-                  child: Align(
-                    alignment: Alignment.bottomLeft,
-                    child: Text(
-                      category['title']!,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.cardBackground,
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildQuickActions(BuildContext context) {
     final actions = [
       {'icon': Icons.search, 'title': 'Tìm phòng', 'action': 'search'},
@@ -1009,178 +937,6 @@ class HomeTab extends ConsumerWidget {
           );
         }).toList(),
       ),
-    );
-  }
-
-  Widget _buildFeaturedHotels(BuildContext context) {
-    final hotels = [
-      {
-        'id': '1',
-        'name': 'Grand Hotel Saigon',
-        'location': 'Quận 1, TP.HCM',
-        'rating': 4.8,
-        'price': '2,500,000',
-        'image': 'https://images.unsplash.com/photo-1564501049412-61c2a3083791?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
-      },
-      {
-        'id': '2',
-        'name': 'Luxury Resort Da Nang',
-        'location': 'Đà Nẵng',
-        'rating': 4.9,
-        'price': '3,200,000',
-        'image': 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
-      },
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Khách sạn nổi bật',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              TextButton(
-                onPressed: _onViewAllPressed,
-                child: const Text(
-                  'Xem tất cả',
-                  style: TextStyle(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        SizedBox(
-          height: 280,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            itemCount: hotels.length,
-            itemBuilder: (context, index) {
-              final hotel = hotels[index];
-              return Container(
-                width: 250,
-                margin: const EdgeInsets.only(right: 16),
-                child: InkWell(
-                  onTap: () => _onHotelPressed(hotel['id'] as String),
-                  borderRadius: BorderRadius.circular(12),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: AppColors.cardBackground,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.shadow.withOpacity(0.1),
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          height: 160,
-                          decoration: BoxDecoration(
-                            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                            image: DecorationImage(
-                              image: NetworkImage(hotel['image'] as String),
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                hotel['name'] as String,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.textPrimary,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.location_on,
-                                    size: 14,
-                                    color: AppColors.textSecondary,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Expanded(
-                                    child: Text(
-                                      hotel['location'] as String,
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: AppColors.textSecondary,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Row(
-                                    children: [
-                                      const Icon(
-                                        Icons.star,
-                                        size: 16,
-                                        color: AppColors.warning,
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        '${hotel['rating']}',
-                                        style: const TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w600,
-                                          color: AppColors.textPrimary,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  Text(
-                                    '${hotel['price']}đ/đêm',
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.primary,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-      ],
     );
   }
 
@@ -1726,7 +1482,7 @@ class HomeTab extends ConsumerWidget {
                     width: 200,
                     margin: const EdgeInsets.only(right: 16),
                     child: InkWell(
-                      onTap: () => _onHotelPressed(room.id.toString()),
+                      onTap: () => _onRoomPressed(context, room),
                       borderRadius: BorderRadius.circular(12),
                       child: Container(
                         decoration: BoxDecoration(
@@ -1854,17 +1610,36 @@ class HomeTab extends ConsumerWidget {
       builder: (context, ref, child) {
         final homeState = ref.watch(homeProvider);
         final selectedCategory = homeState.selectedCategory;
-        
-        final categories = [
-          {'title': 'Tất cả', 'key': 'all'},
-          {'title': 'Bữa sáng', 'key': 'breakfast'},
-          {'title': 'Chỗ để xe', 'key': 'parking'},
-          {'title': 'Phòng gym', 'key': 'gym'},
-          {'title': 'Hồ bơi', 'key': 'pool'},
-          {'title': 'Chăm sóc thú cưng', 'key': 'petcare'},
-        ];
+        final serviceState = ref.watch(serviceProvider);
 
-        final recommendations = _getRecommendationsByCategory(selectedCategory);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!serviceState.hasLoaded && !serviceState.isLoading) {
+            ref.read(serviceProvider.notifier).loadFreeServices();
+          }
+        });
+
+        final categories = serviceState.categories
+            .map((c) => {
+                  'title': c.name,
+                  'key': c.id.toString(),
+                })
+            .toList();
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (categories.isNotEmpty) {
+            final bool currentExists = categories.any(
+              (cat) => cat['key'] == selectedCategory,
+            );
+            if (selectedCategory == 'all' || !currentExists) {
+              ref
+                  .read(homeProvider.notifier)
+                  .setSelectedCategory(categories.first['key'] as String);
+            }
+          }
+        });
+
+        final recommendations =
+            ref.read(serviceProvider.notifier).filterByCategoryKey(selectedCategory);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1925,431 +1700,152 @@ class HomeTab extends ConsumerWidget {
             },
           ),
         ),
-        // Recommendations list (fixed content per tag)
-        ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          itemCount: recommendations.length,
-          itemBuilder: (context, index) {
-            final item = recommendations[index];
-            return Container(
-              margin: const EdgeInsets.only(bottom: 16),
-              child: InkWell(
-                onTap: () => _onHotelPressed(item['id'] as String),
-                borderRadius: BorderRadius.circular(12),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 110,
-                      height: 110,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        image: DecorationImage(
-                          image: NetworkImage(item['image'] as String),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            item['title'] as String,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            item['subtitle'] as String,
-                            softWrap: true,
-                            maxLines: 3,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 15,
-                              color: AppColors.textSecondary,
-                              height: 1.4,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: AppColors.success.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Text(
-                                  'Miễn phí',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.success,
-                                  ),
-                                ),
-                              ),
-                              const Spacer(),
-                              Row(
-                                children: [
-                                  const Icon(Icons.local_offer, size: 14, color: AppColors.primary),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    item['tag'] as String,
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.textPrimary,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+        if (serviceState.isLoading && serviceState.freeServices.isEmpty) ...[
+          const SizedBox(
+            height: 160,
+            child: Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
               ),
-            );
-          },
-        ),
-      ],
-    );
-      },
-    );
-  }
-
-  List<Map<String, dynamic>> _getRecommendationsByCategory(String category) {
-    final breakfast = [
-      {
-        'id': 'bf_1',
-        'title': 'Miễn phí bữa sáng buffet',
-        'subtitle': 'Bao gồm buffet mỗi ngày cho 2 khách, thực đơn Âu - Á phong phú.',
-        'tag': 'Bữa sáng',
-        'image': 'https://images.unsplash.com/photo-1551218808-94e220e084d2?auto=format&fit=crop&w=500&q=80',
-      },
-      {
-        'id': 'bf_2',
-        'title': 'Free coffee & tea sáng',
-        'subtitle': 'Cà phê rang xay và trà thảo mộc, phục vụ từ 6:00 - 10:00.',
-        'tag': 'Bữa sáng',
-        'image': 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=500&q=80',
-      },
-    ];
-
-    final parking = [
-      {
-        'id': 'pk_1',
-        'title': 'Đỗ xe miễn phí tại chỗ',
-        'subtitle': 'Bãi xe trong khuôn viên, bảo vệ 24/7, ra/vào nhiều lần.',
-        'tag': 'Chỗ để xe',
-        'image': 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=500&q=80',
-      },
-      {
-        'id': 'pk_2',
-        'title': 'Miễn phí gửi xe qua đêm',
-        'subtitle': 'Chỗ để ô tô và xe máy tiêu chuẩn, có mái che.',
-        'tag': 'Chỗ để xe',
-        'image': 'https://images.unsplash.com/photo-1525609004556-c46c7d6cf023?auto=format&fit=crop&w=500&q=80',
-      },
-    ];
-
-    final gym = [
-      {
-        'id': 'gm_1',
-        'title': 'Phòng gym miễn phí 24/7',
-        'subtitle': 'Máy chạy bộ, tạ đơn, khu functional; khăn và nước suối.',
-        'tag': 'Phòng gym',
-        'image': 'https://images.unsplash.com/photo-1517963628607-235ccdd5476f?auto=format&fit=crop&w=500&q=80',
-      },
-      {
-        'id': 'gm_2',
-        'title': 'Lớp HIIT buổi sáng miễn phí',
-        'subtitle': 'Hướng dẫn viên nội bộ, lớp 30 phút mỗi ngày 7:00.',
-        'tag': 'Phòng gym',
-        'image': 'https://images.unsplash.com/photo-1517832606299-7ae9b720a186?auto=format&fit=crop&w=500&q=80',
-      },
-    ];
-
-    final pool = [
-      {
-        'id': 'pl_1',
-        'title': 'Vào hồ bơi miễn phí',
-        'subtitle': 'Hồ bơi ngoài trời, khăn tắm và ghế nằm kèm theo.',
-        'tag': 'Hồ bơi',
-        'image': 'https://images.unsplash.com/photo-1508609349937-5ec4ae374ebf?auto=format&fit=crop&w=500&q=80',
-      },
-      {
-        'id': 'pl_2',
-        'title': 'Free pool sunset hour',
-        'subtitle': 'Khung giờ vàng 16:00 - 18:00, view hoàng hôn cực chill.',
-        'tag': 'Hồ bơi',
-        'image': 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=500&q=80',
-      },
-    ];
-
-    final petcare = [
-      {
-        'id': 'pc_1',
-        'title': 'Thân thiện thú cưng – miễn phí trông giữ cơ bản',
-        'subtitle': 'Khu vui chơi riêng, thảm nằm và bát ăn cho thú cưng.',
-        'tag': 'Thú cưng',
-        'image': 'https://images.unsplash.com/photo-1601758125946-6ec2e9aa0b3f?auto=format&fit=crop&w=500&q=80',
-      },
-      {
-        'id': 'pc_2',
-        'title': 'Miễn phí vệ sinh nhẹ cho thú cưng',
-        'subtitle': 'Khăn ướt, lược chải và góc tắm nhanh cho pet.',
-        'tag': 'Thú cưng',
-        'image': 'https://images.unsplash.com/photo-1561037404-61cd46aa615b?auto=format&fit=crop&w=500&q=80',
-      },
-    ];
-
-    switch (category) {
-      case 'breakfast':
-        return breakfast;
-      case 'parking':
-        return parking;
-      case 'gym':
-        return gym;
-      case 'pool':
-        return pool;
-      case 'petcare':
-        return petcare;
-      case 'all':
-        return [
-          breakfast.first,
-          parking.first,
-          gym.first,
-          pool.first,
-          petcare.first,
-        ];
-      default:
-        return [];
-    }
-  }
-
-  Widget _buildBestToday(BuildContext context) {
-    final deals = [
-      {
-        'id': '1',
-        'name': 'Resort Biển Yên',
-        'location': 'Vũng Tàu...',
-        'rating': 4.4,
-        'reviews': 532,
-        'originalPrice': '2,500,000',
-        'currentPrice': '1,500,000',
-        'image': 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
-      },
-      {
-        'id': '2',
-        'name': 'Khách sạn Bờ biển',
-        'location': 'Nha Trang...',
-        'rating': 4.6,
-        'reviews': 324,
-        'originalPrice': '3,500,000',
-        'currentPrice': '2,100,000',
-        'image': 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
-      },
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Row(
-                children: [
-                  Text(
-                    'Tốt nhất hôm nay',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  SizedBox(width: 8),
-                  Text(
-                    '🔥',
-                    style: TextStyle(fontSize: 20),
+            ),
+          ),
+        ] else if (serviceState.errorMessage != null &&
+            serviceState.freeServices.isEmpty) ...[
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.cardBackground,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.shadow.withOpacity(0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
                   ),
                 ],
               ),
-              TextButton(
-                onPressed: _onViewAllPressed,
-                child: const Text(
-                  'Xem tất cả',
-                  style: TextStyle(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        SizedBox(
-          height: 180,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            itemCount: deals.length,
-            itemBuilder: (context, index) {
-              final deal = deals[index];
-              return Container(
-                width: 320,
-                margin: const EdgeInsets.only(right: 16),
-                child: InkWell(
-                  onTap: () => _onHotelPressed(deal['id'] as String),
-                  borderRadius: BorderRadius.circular(12),
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppColors.cardBackground,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.shadow.withOpacity(0.1),
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
+              child: Row(
+                children: [
+                  const Icon(Icons.error_outline, color: AppColors.error),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      serviceState.errorMessage!,
+                      style: const TextStyle(color: AppColors.textSecondary),
                     ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 80,
-                          height: 80,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            image: DecorationImage(
-                              image: NetworkImage(deal['image'] as String),
-                              fit: BoxFit.cover,
-                            ),
+                  ),
+                  TextButton(
+                    onPressed: () =>
+                        ref.read(serviceProvider.notifier).loadFreeServices(),
+                    child: const Text('Thử lại'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ] else ...[
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            itemCount: recommendations.length,
+            itemBuilder: (context, index) {
+              final item = recommendations[index];
+              final imageUrl =
+                  ImageUtils.getServiceImage(item.imageUrls, item.id);
+              return Container(
+                margin: const EdgeInsets.only(bottom: 16),
+                child: InkWell(
+                  onTap: () => _onHotelPressed(item.id.toString()),
+                  borderRadius: BorderRadius.circular(12),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 110,
+                        height: 110,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          image: DecorationImage(
+                            image: NetworkImage(imageUrl),
+                            fit: BoxFit.cover,
                           ),
                         ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                deal['name'] as String,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.textPrimary,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              item.name,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textPrimary,
                               ),
-                              const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.location_on,
-                                    size: 12,
-                                    color: AppColors.textSecondary,
-                                  ),
-                                  const SizedBox(width: 2),
-                                  Expanded(
-                                    child: Text(
-                                      deal['location'] as String,
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: AppColors.textSecondary,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              item.details,
+                              softWrap: true,
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                color: AppColors.textSecondary,
+                                height: 1.4,
                               ),
-                              const SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.star,
-                                    size: 14,
-                                    color: AppColors.warning,
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.success.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(12),
                                   ),
-                                  const SizedBox(width: 2),
-                                  Text(
-                                    '${deal['rating']}(${deal['reviews']})',
-                                    style: const TextStyle(
+                                  child: const Text(
+                                    'Miễn phí',
+                                    style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,
-                                      color: AppColors.textPrimary,
+                                      color: AppColors.success,
                                     ),
                                   ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Text(
-                                        '${deal['currentPrice']}đ',
-                                        style: const TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                          color: AppColors.textPrimary,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        '${deal['originalPrice']}đ',
-                                        style: const TextStyle(
-                                          fontSize: 12,
-                                          color: AppColors.textSecondary,
-                                          decoration: TextDecoration.lineThrough,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.error.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: const Text(
-                                      'Tiết kiệm 40%',
-                                      style: TextStyle(
-                                        fontSize: 11,
+                                ),
+                                const Spacer(),
+                                Row(
+                                  children: [
+                                    const Icon(Icons.local_offer, size: 14, color: AppColors.primary),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      item.categoryName,
+                                      style: const TextStyle(
+                                        fontSize: 12,
                                         fontWeight: FontWeight.w600,
-                                        color: AppColors.error,
+                                        color: AppColors.textPrimary,
                                       ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               );
             },
           ),
-        ),
+        ],
       ],
+    );
+      },
     );
   }
 

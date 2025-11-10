@@ -6,13 +6,14 @@ import '../utility/search_header.dart';
 import '../utility/image_utils.dart';
 import '../provider/search_provider.dart';
 import '../provider/room_provider.dart';
+import '../model/response/room_type_response.dart';
+import '../utility/navigation_utils.dart';
 
 class SearchScreen extends ConsumerWidget {
   const SearchScreen({super.key});
 
-  void _onHotelPressed(int roomId) {
-    // TODO: Navigate to room detail screen
-    debugPrint('Room pressed: $roomId');
+  void _onRoomPressed(BuildContext context, RoomTypeResponse room) {
+    NavigationUtils.openRoomDetail(context, room);
   }
 
   @override
@@ -134,7 +135,7 @@ class SearchScreen extends ConsumerWidget {
         return Container(
           margin: const EdgeInsets.only(bottom: 16),
           child: InkWell(
-            onTap: () => _onHotelPressed(room.id),
+            onTap: () => _onRoomPressed(context, room),
             borderRadius: BorderRadius.circular(16),
             child: Container(
               decoration: BoxDecoration(

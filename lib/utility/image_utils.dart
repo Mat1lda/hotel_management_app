@@ -14,8 +14,29 @@ class ImageUtils {
     final imageIndex = roomId % defaultRoomImages.length;
     return defaultRoomImages[imageIndex];
   }
+
+  static List<String> getRoomImages(List<String> roomImages, int roomId) {
+    if (roomImages.isNotEmpty) {
+      return roomImages;
+    }
+    // Xoay danh sách ảnh mặc định dựa trên roomId để đa dạng
+    final start = roomId % defaultRoomImages.length;
+    final List<String> rotated = [];
+    for (int i = 0; i < defaultRoomImages.length; i++) {
+      rotated.add(defaultRoomImages[(start + i) % defaultRoomImages.length]);
+    }
+    return rotated;
+  }
   static String getRandomDefaultImage() {
     final randomIndex = DateTime.now().millisecondsSinceEpoch % defaultRoomImages.length;
     return defaultRoomImages[randomIndex];
+  }
+
+  static String getServiceImage(List<String> serviceImages, int serviceId) {
+    if (serviceImages.isNotEmpty) {
+      return serviceImages.first;
+    }
+    final imageIndex = serviceId % defaultRoomImages.length;
+    return defaultRoomImages[imageIndex];
   }
 }
