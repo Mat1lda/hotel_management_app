@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../screen/booking_request_screen.dart';
 import '../model/response/room_type_response.dart';
 import '../utility/app_colors.dart';
 import '../utility/image_utils.dart';
+import '../provider/auth_provider.dart';
 import '../provider/room_detail_provider.dart';
+import '../dialog/login_required_dialog.dart';
 import '../utility/custom_app_bar.dart';
 
 class RoomDetailScreen extends ConsumerStatefulWidget {
@@ -299,7 +302,31 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
                   SizedBox(
                     height: 48,
                     child: ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () async {
+                        final isLoggedIn = ref.read(authProvider).isLoggedIn;
+                        if (!isLoggedIn) {
+                          final bool? goLogin = await showDialog<bool>(
+                            context: context,
+                            barrierDismissible: true,
+                            builder: (ctx) => const LoginRequiredDialog(
+                              message:
+                                  'Bạn cần đăng nhập để đặt phòng. Vui lòng đăng nhập để tiếp tục.',
+                            ),
+                          );
+                          if (!context.mounted) return;
+                          if (goLogin == true) {
+                            Navigator.of(context).pushNamed('/login');
+                          }
+                          return;
+                        }
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => BookingRequestScreen(
+                              roomType: displayed,
+                            ),
+                          ),
+                        );
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         foregroundColor: AppColors.cardBackground,

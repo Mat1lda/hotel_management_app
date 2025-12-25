@@ -12,10 +12,65 @@ class AuthService {
     _dio = ApiClient.dio;
   }
 
+  Future<Map<String, dynamic>> sendOtp(String email) async {
+    try {
+      final response = await _dio.post(
+        '/auth/send-otp',
+        queryParameters: {'email': email},
+      );
+
+      return {
+        'success': true,
+        'data': response.data,
+        'message': 'Đã gửi mã OTP',
+      };
+    } on DioException catch (e) {
+      String errorMessage = 'Có lỗi xảy ra khi gửi OTP';
+
+      if (e.response != null) {
+        final statusCode = e.response!.statusCode;
+        final responseData = e.response!.data;
+
+        switch (statusCode) {
+          case 400:
+            errorMessage = responseData['message'] ?? 'Email không hợp lệ';
+            break;
+          case 404:
+            errorMessage = responseData['message'] ?? 'Không tìm thấy email';
+            break;
+          case 409:
+            errorMessage =
+                responseData['message'] ?? 'Email đã được sử dụng';
+            break;
+          case 500:
+            errorMessage = 'Lỗi server, vui lòng thử lại sau';
+            break;
+          default:
+            errorMessage = responseData['message'] ?? 'Gửi OTP thất bại';
+        }
+      } else if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout) {
+        errorMessage = 'Kết nối timeout, vui lòng kiểm tra mạng';
+      } else if (e.type == DioExceptionType.connectionError) {
+        errorMessage = 'Không thể kết nối đến server';
+      }
+
+      return {
+        'success': false,
+        'message': errorMessage,
+      };
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Có lỗi không xác định xảy ra',
+      };
+    }
+  }
+
   Future<Map<String, dynamic>> register(RegisterRequest request) async {
     try {
       final response = await _dio.post(
-        '/auth/register',
+        '/auth/register/customer',
         data: request.toJson(),
       );
 
@@ -37,6 +92,9 @@ class AuthService {
             break;
           case 409:
             errorMessage = 'Email đã được sử dụng';
+            break;
+          case 410:
+            errorMessage = responseData['message'] ?? 'OTP không hợp lệ hoặc đã hết hạn';
             break;
           case 500:
             errorMessage = 'Lỗi server, vui lòng thử lại sau';

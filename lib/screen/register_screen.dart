@@ -38,6 +38,8 @@ class RegisterScreen extends ConsumerWidget {
               const SizedBox(height: 16),
               _buildProfileDetailsCard(notifier),
               const SizedBox(height: 16),
+              _OtpCard(form: form, notifier: notifier),
+              const SizedBox(height: 16),
               _PasswordField(
                 label: 'Mật khẩu',
                 hint: 'Tạo mật khẩu',
@@ -218,6 +220,101 @@ class RegisterScreen extends ConsumerWidget {
             label: 'Ngày sinh',
             hint: 'Chọn ngày sinh',
             onChanged: notifier.setDob,
+          ),
+          const SizedBox(height: 16),
+          _TextField(
+            label: 'CCCD/CMND',
+            hint: 'Nhập số CCCD/CMND',
+            keyboardType: TextInputType.number,
+            onChanged: notifier.setIdentification,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OtpCard extends StatelessWidget {
+  final RegisterFormState form;
+  final RegisterFormNotifier notifier;
+
+  const _OtpCard({
+    required this.form,
+    required this.notifier,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.cardBackground,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white),
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Xác thực OTP',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'Bấm gửi OTP, kiểm tra email và nhập mã để hoàn tất đăng ký.',
+            style: TextStyle(
+              fontSize: 14,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: _TextField(
+                  label: 'Mã OTP',
+                  hint: form.otpSent ? 'Nhập mã OTP' : 'Gửi OTP trước',
+                  keyboardType: TextInputType.number,
+                  onChanged: notifier.setOtpCode,
+                ),
+              ),
+              const SizedBox(width: 12),
+              SizedBox(
+                height: 48,
+                child: ElevatedButton(
+                  onPressed: form.isSendingOtp
+                      ? null
+                      : () async {
+                          final ok = await notifier.sendOtp();
+                          if (!context.mounted) return;
+                          if (ok) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Đã gửi OTP, vui lòng kiểm tra email.'),
+                                backgroundColor: AppColors.primary,
+                              ),
+                            );
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: AppColors.cardBackground,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(
+                    form.isSendingOtp ? 'Đang gửi...' : (form.otpSent ? 'Gửi lại' : 'Gửi OTP'),
+                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),

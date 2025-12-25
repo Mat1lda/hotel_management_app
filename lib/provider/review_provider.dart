@@ -74,6 +74,40 @@ class ReviewNotifier extends Notifier<ReviewState> {
     }
   }
 
+  Future<void> loadAll() async {
+    if (state.isLoading) return;
+    state = state.copyWith(isLoading: true, errorMessage: null);
+    try {
+      final result = await _reviewService.getAllReviews();
+      if (result['success'] == true) {
+        final List<ReviewResponse> allReviews = result['data'] as List<ReviewResponse>;
+        final List<ReviewResponse> sorted = [...allReviews]..sort((a, b) {
+          final aDay = a.day;
+          final bDay = b.day;
+          if (aDay != null && bDay != null) {
+            return bDay.compareTo(aDay);
+          }
+          return b.id.compareTo(a.id);
+        });
+        state = state.copyWith(
+          reviews: sorted,
+          isLoading: false,
+          hasLoaded: true,
+        );
+      } else {
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: result['message'] as String,
+        );
+      }
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: 'Có lỗi không xác định xảy ra: $e',
+      );
+    }
+  }
+
   void clearError() {
     state = state.copyWith(errorMessage: null);
   }

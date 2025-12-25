@@ -1,101 +1,145 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../model/booking_model.dart';
+import '../model/booking_bill_group.dart';
+import '../model/response/booking_response.dart';
+import '../service/booking_service.dart';
+import 'auth_provider.dart';
 
 class MyBookingState {
   final bool initialized;
-  final List<BookingModel> bookedBookings;
-  final List<BookingModel> historyBookings;
+  final int? userId;
+  final List<BookingBillGroup> bookedBookings;
+  final List<BookingBillGroup> historyBookings;
   final BookingStatus selectedTab;
+  final bool isLoading;
+  final String? errorMessage;
 
   const MyBookingState({
     this.initialized = false,
+    this.userId,
     this.bookedBookings = const [],
     this.historyBookings = const [],
     this.selectedTab = BookingStatus.booked,
+    this.isLoading = false,
+    this.errorMessage,
   });
 
   MyBookingState copyWith({
     bool? initialized,
-    List<BookingModel>? bookedBookings,
-    List<BookingModel>? historyBookings,
+    int? userId,
+    List<BookingBillGroup>? bookedBookings,
+    List<BookingBillGroup>? historyBookings,
     BookingStatus? selectedTab,
+    bool? isLoading,
+    String? errorMessage,
   }) {
     return MyBookingState(
       initialized: initialized ?? this.initialized,
+      userId: userId ?? this.userId,
       bookedBookings: bookedBookings ?? this.bookedBookings,
       historyBookings: historyBookings ?? this.historyBookings,
       selectedTab: selectedTab ?? this.selectedTab,
+      isLoading: isLoading ?? this.isLoading,
+      errorMessage: errorMessage,
     );
   }
 }
 
 class MyBookingNotifier extends Notifier<MyBookingState> {
+  late final BookingService _bookingService;
+
   @override
   MyBookingState build() {
+    _bookingService = BookingService();
     return const MyBookingState();
   }
 
-  void initialize() {
-    // Fake data cho booking
-    final bookedBookings = [
-      const BookingModel(
-        id: '1',
-        hotelName: 'Grand Hotel Saigon',
-        hotelImage: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
-        rating: 4.7,
-        dates: '15 - 17 Tháng 11, 2024',
-        guests: 2,
-        rooms: 1,
-        price: '3,200,000',
-        status: BookingStatus.booked,
-      ),
-      const BookingModel(
-        id: '2',
-        hotelName: 'Resort Mystic Palms',
-        hotelImage: 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
-        rating: 4.0,
-        dates: '20 - 25 Tháng 11, 2024',
-        guests: 1,
-        rooms: 1,
-        price: '2,300,000',
-        status: BookingStatus.booked,
-      ),
-    ];
+  Future<void> initialize({
+    required int userId,
+    required String token,
+  }) async {
+    if (state.isLoading) return;
 
-    final historyBookings = [
-      const BookingModel(
-        id: '3',
-        hotelName: 'Khách sạn Luxury Da Nang',
-        hotelImage: 'https://images.unsplash.com/photo-1564501049412-61c2a3083791?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
-        rating: 4.8,
-        dates: '15 - 17 Tháng 10, 2024',
-        guests: 2,
-        rooms: 1,
-        price: '2,500,000',
-        status: BookingStatus.history,
-      ),
-      const BookingModel(
-        id: '4',
-        hotelName: 'Resort Horizon Đà Lạt',
-        hotelImage: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
-        rating: 4.9,
-        dates: '5 - 8 Tháng 9, 2024',
-        guests: 3,
-        rooms: 2,
-        price: '4,800,000',
-        status: BookingStatus.history,
-      ),
-    ];
+    state = state.copyWith(isLoading: true, errorMessage: null);
 
-    state = state.copyWith(
-      initialized: true,
-      bookedBookings: bookedBookings,
-      historyBookings: historyBookings,
-    );
+    try {
+      final result = await _bookingService.getAllBookings(
+        token: token,
+      );
+
+      if (result['success'] != true) {
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: result['message'] as String? ?? 'Không thể tải booking',
+        );
+        return;
+      }
+
+      final all = (result['data'] as List<BookingResponse>)
+          .where((b) => b.customerId == userId)
+          .toList()
+        ..sort((a, b) => b.id.compareTo(a.id));
+
+      // Group by billId (1 billId = 1 item in MyBooking list)
+      final Map<int, List<BookingResponse>> byBill = {};
+      for (final b in all) {
+        byBill.putIfAbsent(b.billId, () => <BookingResponse>[]).add(b);
+      }
+
+      final now = DateTime.now();
+      final booked = <BookingBillGroup>[];
+      final history = <BookingBillGroup>[];
+
+      for (final entry in byBill.entries) {
+        final billId = entry.key;
+        final bookings = entry.value;
+        // ensure bookings inside a group are sorted by id desc for consistent detail UI
+        bookings.sort((a, b) => b.id.compareTo(a.id));
+
+        final bool groupIsHistory = bookings.every((b) =>
+            b.actualCheckOutTime != null || b.contractCheckOutTime.isBefore(now));
+
+        final group = BookingBillGroup(billId: billId, bookings: bookings);
+        if (groupIsHistory) {
+          history.add(group);
+        } else {
+          booked.add(group);
+        }
+      }
+
+      // Sort groups by max booking id DESC (keeps your "sort by id" intent)
+      booked.sort((a, b) => b.maxBookingId.compareTo(a.maxBookingId));
+      history.sort((a, b) => b.maxBookingId.compareTo(a.maxBookingId));
+
+      state = state.copyWith(
+        initialized: true,
+        userId: userId,
+        bookedBookings: booked,
+        historyBookings: history,
+        isLoading: false,
+        errorMessage: null,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: 'Có lỗi không xác định xảy ra: $e',
+      );
+    }
   }
 
   void setSelectedTab(BookingStatus tab) {
     state = state.copyWith(selectedTab: tab);
+  }
+
+  Future<void> refresh() async {
+    final auth = ref.read(authProvider);
+    final user = auth.user;
+    final token = user?.token;
+    if (auth.isLoggedIn != true || user == null || token == null || token.isEmpty) {
+      state = const MyBookingState();
+      return;
+    }
+    await initialize(userId: user.id, token: token);
   }
 }
 

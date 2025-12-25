@@ -9,6 +9,10 @@ class RegisterFormState {
   final String address;
   final String gender;
   final DateTime? dob;
+  final String identification;
+  final String otpCode;
+  final bool otpSent;
+  final bool isSendingOtp;
   final String password;
   final String confirmPassword;
   final bool passwordVisible;
@@ -23,6 +27,10 @@ class RegisterFormState {
     this.address = '',
     this.gender = '',
     this.dob,
+    this.identification = '',
+    this.otpCode = '',
+    this.otpSent = false,
+    this.isSendingOtp = false,
     this.password = '',
     this.confirmPassword = '',
     this.passwordVisible = false,
@@ -38,6 +46,10 @@ class RegisterFormState {
     String? address,
     String? gender,
     DateTime? dob,
+    String? identification,
+    String? otpCode,
+    bool? otpSent,
+    bool? isSendingOtp,
     String? password,
     String? confirmPassword,
     bool? passwordVisible,
@@ -52,6 +64,10 @@ class RegisterFormState {
       address: address ?? this.address,
       gender: gender ?? this.gender,
       dob: dob ?? this.dob,
+      identification: identification ?? this.identification,
+      otpCode: otpCode ?? this.otpCode,
+      otpSent: otpSent ?? this.otpSent,
+      isSendingOtp: isSendingOtp ?? this.isSendingOtp,
       password: password ?? this.password,
       confirmPassword: confirmPassword ?? this.confirmPassword,
       passwordVisible: passwordVisible ?? this.passwordVisible,
@@ -79,6 +95,9 @@ class RegisterFormState {
         address.isNotEmpty &&
         gender.isNotEmpty &&
         dob != null &&
+        identification.isNotEmpty &&
+        otpSent &&
+        otpCode.isNotEmpty &&
         isPasswordValid &&
         isConfirmMatch;
   }
@@ -117,6 +136,14 @@ class RegisterFormNotifier extends Notifier<RegisterFormState> {
     state = state.copyWith(dob: value, errorMessage: null);
   }
 
+  void setIdentification(String value) {
+    state = state.copyWith(identification: value, errorMessage: null);
+  }
+
+  void setOtpCode(String value) {
+    state = state.copyWith(otpCode: value, errorMessage: null);
+  }
+
   void setPassword(String value) {
     state = state.copyWith(password: value, errorMessage: null);
   }
@@ -133,9 +160,47 @@ class RegisterFormNotifier extends Notifier<RegisterFormState> {
     state = state.copyWith(confirmPasswordVisible: !state.confirmPasswordVisible);
   }
 
+  static bool _isEmailValid(String email) {
+    return RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email);
+  }
+
+  Future<bool> sendOtp() async {
+    final email = state.email.trim();
+    if (email.isEmpty) {
+      state = state.copyWith(errorMessage: 'Vui lòng nhập email để nhận OTP.');
+      return false;
+    }
+    if (!_isEmailValid(email)) {
+      state = state.copyWith(errorMessage: 'Email không hợp lệ.');
+      return false;
+    }
+    if (state.isSendingOtp) return false;
+
+    state = state.copyWith(isSendingOtp: true, errorMessage: null);
+    final result = await _authService.sendOtp(email);
+    if (result['success'] == true) {
+      state = state.copyWith(
+        isSendingOtp: false,
+        otpSent: true,
+        errorMessage: null,
+      );
+      return true;
+    }
+
+    state = state.copyWith(
+      isSendingOtp: false,
+      otpSent: false,
+      errorMessage: result['message'] ?? 'Gửi OTP thất bại. Vui lòng thử lại.',
+    );
+    return false;
+  }
+
   Future<bool> submit() async {
     if (!state.isFormValid) {
-      state = state.copyWith(errorMessage: 'Vui lòng kiểm tra lại các trường thông tin.');
+      state = state.copyWith(
+        errorMessage:
+            state.otpSent ? 'Vui lòng kiểm tra lại các trường thông tin.' : 'Vui lòng gửi OTP trước khi đăng ký.',
+      );
       return false;
     }
     
@@ -149,8 +214,9 @@ class RegisterFormNotifier extends Notifier<RegisterFormState> {
         phone: state.phoneNumber,
         address: state.address,
         gender: state.gender,
-        roleName: 'CUSTOMER',
         dob: state.dob!,
+        identification: state.identification,
+        otpCode: state.otpCode,
       );
 
       final result = await _authService.register(registerRequest);

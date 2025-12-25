@@ -5,8 +5,9 @@ class RegisterRequest {
   final String phone;
   final String address;
   final String gender;
-  final String roleName;
   final DateTime dob;
+  final String identification;
+  final String otpCode;
 
   RegisterRequest({
     required this.email,
@@ -15,9 +16,17 @@ class RegisterRequest {
     required this.phone,
     required this.address,
     required this.gender,
-    required this.roleName,
     required this.dob,
+    required this.identification,
+    required this.otpCode,
   });
+
+  static String _formatLocalDate(DateTime d) {
+    final y = d.year.toString().padLeft(4, '0');
+    final m = d.month.toString().padLeft(2, '0');
+    final day = d.day.toString().padLeft(2, '0');
+    return '$y-$m-$day';
+  }
 
   Map<String, dynamic> toJson() {
     return {
@@ -27,8 +36,9 @@ class RegisterRequest {
       'phone': phone,
       'address': address,
       'gender': gender,
-      'roleName': roleName,
-      'dob': dob.toIso8601String(),
+      'dob': _formatLocalDate(dob),
+      'identification': identification,
+      'otpCode': otpCode,
     };
   }
 
@@ -40,14 +50,15 @@ class RegisterRequest {
       phone: json['phone'] ?? '',
       address: json['address'] ?? '',
       gender: json['gender'] ?? '',
-      roleName: json['roleName'] ?? '',
-      dob: DateTime.parse(json['dob']),
+      dob: DateTime.tryParse(json['dob']?.toString() ?? '') ?? DateTime(2000),
+      identification: json['identification'] ?? '',
+      otpCode: json['otpCode'] ?? '',
     );
   }
 
   @override
   String toString() {
-    return 'RegisterRequest(email: $email, name: $name, phone: $phone, address: $address, gender: $gender, roleName: $roleName, dob: $dob)';
+    return 'RegisterRequest(email: $email, name: $name, phone: $phone, address: $address, gender: $gender, dob: $dob, identification: $identification)';
   }
 
   RegisterRequest copyWith({
@@ -57,8 +68,9 @@ class RegisterRequest {
     String? phone,
     String? address,
     String? gender,
-    String? roleName,
     DateTime? dob,
+    String? identification,
+    String? otpCode,
   }) {
     return RegisterRequest(
       email: email ?? this.email,
@@ -67,8 +79,9 @@ class RegisterRequest {
       phone: phone ?? this.phone,
       address: address ?? this.address,
       gender: gender ?? this.gender,
-      roleName: roleName ?? this.roleName,
       dob: dob ?? this.dob,
+      identification: identification ?? this.identification,
+      otpCode: otpCode ?? this.otpCode,
     );
   }
 }

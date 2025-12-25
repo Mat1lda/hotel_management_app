@@ -5,8 +5,7 @@ import '../../utility/app_colors.dart';
 class MessageTab extends ConsumerWidget {
   const MessageTab({super.key});
 
-  void _onSignInPressed() {
-  }
+  void _onSignInPressed() {}
 
   void _onJoinPressed(BuildContext context) {
     Navigator.of(context).pushNamed('/register');
@@ -131,11 +130,9 @@ class MessageTab extends ConsumerWidget {
                 ],
               ),
             ),
-
           ],
         ),
       ),
     );
   }
-
 }

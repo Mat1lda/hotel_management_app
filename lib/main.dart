@@ -4,6 +4,7 @@ import 'screen/splash_screen.dart';
 import 'screen/main_screen.dart';
 import 'screen/register_screen.dart';
 import 'screen/search_screen.dart';
+import 'screen/room_promotion_list_screen.dart';
 import 'utility/app_colors.dart';
 import 'screen/login_screen.dart';
 
@@ -39,6 +40,7 @@ class MyApp extends StatelessWidget {
         '/register': (context) => const RegisterScreen(),
         '/login': (context) => const LoginScreen(),
         '/search': (context) => const SearchScreen(),
+        '/offers': (context) => const RoomPromotionListScreen(),
       },
       debugShowCheckedModeBanner: false,
     );

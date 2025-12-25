@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import '../model/request/review_create_request.dart';
 import '../model/response/review_response.dart';
 import 'api_client.dart';
 
@@ -59,6 +60,76 @@ class ReviewService {
           default:
             errorMessage = (responseData is Map ? responseData['message'] : null) ??
                 'Lấy danh sách đánh giá thất bại';
+        }
+      } else if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout) {
+        errorMessage = 'Kết nối timeout, vui lòng kiểm tra mạng';
+      } else if (e.type == DioExceptionType.connectionError) {
+        errorMessage = 'Không thể kết nối đến server';
+      }
+
+      return {
+        'success': false,
+        'message': errorMessage,
+      };
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Có lỗi không xác định xảy ra: $e',
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> createReview(
+    ReviewCreateRequest request, {
+    String? token,
+  }) async {
+    try {
+      final form = await request.toFormData();
+      final response = await _dio.post(
+        '/reviews/create',
+        data: form,
+        options: Options(
+          headers: token != null && token.isNotEmpty
+              ? {'Authorization': 'Bearer $token'}
+              : null,
+          contentType: 'multipart/form-data',
+        ),
+      );
+
+      return {
+        'success': true,
+        'data': response.data,
+        'message': 'Gửi đánh giá thành công',
+      };
+    } on DioException catch (e) {
+      String errorMessage = 'Có lỗi xảy ra khi gửi đánh giá';
+
+      if (e.response != null) {
+        final statusCode = e.response!.statusCode;
+        final responseData = e.response!.data;
+        switch (statusCode) {
+          case 400:
+            errorMessage =
+                (responseData is Map ? responseData['message'] : null) ??
+                    'Thông tin đánh giá không hợp lệ';
+            break;
+          case 401:
+            errorMessage = 'Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại';
+            break;
+          case 403:
+            errorMessage = 'Bạn không có quyền thực hiện thao tác này';
+            break;
+          case 404:
+            errorMessage = 'Không tìm thấy endpoint tạo đánh giá';
+            break;
+          case 500:
+            errorMessage = 'Lỗi server, vui lòng thử lại sau';
+            break;
+          default:
+            errorMessage =
+                (responseData is Map ? responseData['message'] : null) ??
+                    'Gửi đánh giá thất bại';
         }
       } else if (e.type == DioExceptionType.connectionTimeout ||
           e.type == DioExceptionType.receiveTimeout) {

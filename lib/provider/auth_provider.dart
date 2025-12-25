@@ -11,6 +11,7 @@ class User {
   final String gender;
   final String address;
   final DateTime dob;
+  final String identification;
   final String username;
   final String roleName;
   final String? token;
@@ -24,6 +25,7 @@ class User {
     required this.gender,
     required this.address,
     required this.dob,
+    required this.identification,
     required this.username,
     required this.roleName,
     this.token,
@@ -39,6 +41,7 @@ class User {
       gender: userResponse.gender,
       address: userResponse.address,
       dob: userResponse.dob,
+      identification: userResponse.identification,
       username: userResponse.username,
       roleName: userResponse.roleName,
       token: token,
@@ -106,6 +109,7 @@ class AuthNotifier extends Notifier<AuthState> {
           gender: '',
           address: '',
           dob: DateTime.now(),
+          identification: '',
           username: 'user@example.com',
           roleName: loginResponse.role,
           token: loginResponse.token,
@@ -128,6 +132,7 @@ class AuthNotifier extends Notifier<AuthState> {
         gender: '',
         address: '',
         dob: DateTime.now(),
+        identification: '',
         username: 'user@example.com',
         roleName: loginResponse.role,
         token: loginResponse.token,
@@ -157,6 +162,7 @@ class AuthNotifier extends Notifier<AuthState> {
         gender: state.user!.gender,
         address: newLocation, // Cập nhật address thay vì location
         dob: state.user!.dob,
+        identification: state.user!.identification,
         username: state.user!.username,
         roleName: state.user!.roleName,
         token: state.user!.token,

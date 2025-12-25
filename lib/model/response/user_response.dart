@@ -5,6 +5,7 @@ class UserResponse {
   final String gender;
   final String address;
   final DateTime dob;
+  final String identification;
   final String username;
   final String roleName;
 
@@ -15,6 +16,7 @@ class UserResponse {
     required this.gender,
     required this.address,
     required this.dob,
+    required this.identification,
     required this.username,
     required this.roleName,
   });
@@ -27,6 +29,7 @@ class UserResponse {
       'gender': gender,
       'address': address,
       'dob': dob.toIso8601String(),
+      'identification': identification,
       'username': username,
       'roleName': roleName,
     };
@@ -40,6 +43,7 @@ class UserResponse {
       gender: json['gender'] ?? '',
       address: json['address'] ?? '',
       dob: json['dob'] != null ? DateTime.parse(json['dob']) : DateTime.now(),
+      identification: json['identification'] ?? '',
       username: json['username'] ?? '',
       roleName: json['roleName'] ?? '',
     );
@@ -47,7 +51,7 @@ class UserResponse {
 
   @override
   String toString() {
-    return 'UserResponse(id: $id, name: $name, username: $username, phone: $phone, gender: $gender, address: $address, roleName: $roleName, dob: $dob)';
+    return 'UserResponse(id: $id, name: $name, username: $username, phone: $phone, gender: $gender, address: $address, roleName: $roleName, dob: $dob, identification: $identification)';
   }
 
   UserResponse copyWith({
@@ -57,6 +61,7 @@ class UserResponse {
     String? gender,
     String? address,
     DateTime? dob,
+    String? identification,
     String? username,
     String? roleName,
   }) {
@@ -67,6 +72,7 @@ class UserResponse {
       gender: gender ?? this.gender,
       address: address ?? this.address,
       dob: dob ?? this.dob,
+      identification: identification ?? this.identification,
       username: username ?? this.username,
       roleName: roleName ?? this.roleName,
     );

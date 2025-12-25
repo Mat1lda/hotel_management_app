@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../utility/app_colors.dart';
+import '../../utility/app_date_utils.dart';
 import '../../utility/custom_app_bar.dart';
+import '../../utility/navigation_utils.dart';
+import '../../utility/price_utils.dart';
 import '../../utility/search_header.dart';
 import '../../provider/auth_provider.dart';
 import '../../provider/my_booking_provider.dart';
 import '../../model/booking_model.dart';
+import '../../model/booking_bill_group.dart';
 
 class MyBookingTab extends ConsumerWidget {
   const MyBookingTab({super.key});
@@ -19,11 +23,20 @@ class MyBookingTab extends ConsumerWidget {
       return _buildNotLoggedInView(context);
     }
 
-    // Initialize booking data if not already done
+    final user = authState.user;
+    final token = user?.token;
+    if (user == null || token == null || token.isEmpty) {
+      return _buildNotLoggedInView(context);
+    }
+
+    // Initialize booking data if not already done (or user changed)
     final bookingState = ref.watch(myBookingProvider);
-    if (!bookingState.initialized) {
+    if (!bookingState.initialized || bookingState.userId != user.id) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.read(myBookingProvider.notifier).initialize();
+        ref.read(myBookingProvider.notifier).initialize(
+              userId: user.id,
+              token: token,
+            );
       });
     }
 
@@ -56,7 +69,7 @@ class MyBookingTab extends ConsumerWidget {
           ),
           _buildTabBar(context, ref, bookingState),
           Expanded(
-            child: _buildBookingList(context, bookingState),
+            child: _buildBookingList(context, ref, bookingState),
           ),
         ],
       ),
@@ -262,10 +275,59 @@ class MyBookingTab extends ConsumerWidget {
     );
   }
 
-  Widget _buildBookingList(BuildContext context, MyBookingState bookingState) {
+  Widget _buildBookingList(
+    BuildContext context,
+    WidgetRef ref,
+    MyBookingState bookingState,
+  ) {
     final bookings = bookingState.selectedTab == BookingStatus.booked
         ? bookingState.bookedBookings
         : bookingState.historyBookings;
+
+    if (bookingState.isLoading && bookings.isEmpty) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
+    if (bookingState.errorMessage != null && bookings.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 56, color: AppColors.error),
+              const SizedBox(height: 12),
+              Text(
+                bookingState.errorMessage!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                height: 44,
+                child: ElevatedButton(
+                  onPressed: () => ref.read(myBookingProvider.notifier).refresh(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text('Thử lại'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     if (bookings.isEmpty) {
       return Center(
@@ -293,161 +355,168 @@ class MyBookingTab extends ConsumerWidget {
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: bookings.length,
-      itemBuilder: (context, index) {
-        final booking = bookings[index];
-        return _buildBookingCard(context, booking);
-      },
+    return RefreshIndicator(
+      onRefresh: () => ref.read(myBookingProvider.notifier).refresh(),
+      child: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: bookings.length,
+        itemBuilder: (context, index) {
+          final booking = bookings[index];
+          return _buildBookingCard(context, booking);
+        },
+      ),
     );
   }
 
-  Widget _buildBookingCard(BuildContext context, BookingModel booking) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.shadow.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Hotel image and rating
-          Stack(
-            children: [
-              Container(
-                height: 120,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                  image: DecorationImage(
-                    image: NetworkImage(booking.hotelImage),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-              Positioned(
-                top: 12,
-                right: 12,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppColors.cardBackground,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.star,
-                        size: 14,
-                        color: AppColors.warning,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        booking.rating.toString(),
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          
-          // Hotel details
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildBookingCard(BuildContext context, BookingBillGroup group) {
+    final dateRange =
+        '${AppDateUtils.formatDmy(group.contractCheckInTime)} - ${AppDateUtils.formatDmy(group.contractCheckOutTime)}';
+
+    final roomNumbers = group.bookings.map((b) => b.roomNumber).toList()..sort();
+    final roomsText =
+        roomNumbers.isEmpty ? '—' : roomNumbers.map((e) => e.toString()).join(', ');
+
+    final roomTypes = group.bookings.map((b) => b.roomType).toSet().toList();
+    final roomTypeText = roomTypes.isEmpty
+        ? ''
+        : (roomTypes.length == 1 ? roomTypes.first : 'Nhiều loại phòng');
+
+    return InkWell(
+      onTap: () => NavigationUtils.openBookingDetail(context, group),
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        decoration: BoxDecoration(
+          color: AppColors.cardBackground,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.shadow.withOpacity(0.08),
+              blurRadius: 10,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
-                Text(
-                  booking.hotelName,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
+                Expanded(
+                  child: Text(
+                    'Hóa đơn #${group.billId}',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  '${booking.price}đ/đêm',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.primary,
+                _buildStatusChip(group.paymentStatus),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                const Icon(
+                  Icons.meeting_room_outlined,
+                  size: 18,
+                  color: AppColors.textSecondary,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    group.bookings.length <= 1
+                        ? 'Phòng $roomsText • $roomTypeText'
+                        : '${group.bookings.length} phòng ($roomsText) • $roomTypeText',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.calendar_today,
-                      size: 16,
-                      color: AppColors.textSecondary,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Ngày',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Text(
-                      booking.dates,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.people,
-                      size: 16,
-                      color: AppColors.textSecondary,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Khách',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Text(
-                      '${booking.guests} Khách | ${booking.rooms} Phòng',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                  ],
                 ),
               ],
             ),
-          ),
-        ],
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                const Icon(
+                  Icons.calendar_today_outlined,
+                  size: 18,
+                  color: AppColors.textSecondary,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    dateRange,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                const Icon(
+                  Icons.payments_outlined,
+                  size: 18,
+                  color: AppColors.textSecondary,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    PriceUtils.formatVnd(group.totalMoney),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ),
+                const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatusChip(String status) {
+    final normalized = status.toLowerCase().trim();
+    final Color bg;
+    final Color fg;
+
+    if (normalized == 'paid') {
+      bg = AppColors.success.withOpacity(0.12);
+      fg = AppColors.success;
+    } else if (normalized == 'pending') {
+      bg = AppColors.warning.withOpacity(0.12);
+      fg = AppColors.warning;
+    } else {
+      bg = AppColors.border.withOpacity(0.6);
+      fg = AppColors.textSecondary;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        status,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: fg,
+        ),
       ),
     );
   }

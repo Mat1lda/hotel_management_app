@@ -20,6 +20,7 @@ class AppColors {
 
   // Border colors
   static const Color borderPrimary = Color(0xFF2C3E50); // Viền chính
+  static const Color border = Color(0xFFE0E0E0); // Viền nhẹ cho card/section
 
   // Status colors
   static const Color success = Color(0xFF27AE60); // Màu thành công

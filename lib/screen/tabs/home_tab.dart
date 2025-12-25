@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../utility/app_colors.dart';
+import '../../utility/app_date_utils.dart';
 import '../../provider/auth_provider.dart';
 import '../../provider/home_provider.dart';
+import '../../provider/my_booking_provider.dart';
 import '../../provider/room_provider.dart';
 import '../../provider/review_provider.dart';
 import '../../utility/image_utils.dart';
 import '../../provider/service_provider.dart';
 import '../../model/response/room_type_response.dart';
 import '../../utility/navigation_utils.dart';
+import '../../model/booking_bill_group.dart';
+import '../../utility/price_utils.dart';
+import '../reviews_screen.dart';
 
 class HomeTab extends ConsumerWidget {
   const HomeTab({super.key});
@@ -100,6 +105,8 @@ class HomeTab extends ConsumerWidget {
     // Handle quick actions
     if (action == 'search') {
       Navigator.of(context).pushNamed('/search');
+    } else if (action == 'offers') {
+      Navigator.of(context).pushNamed('/offers');
     } else {
       print('Quick action: $action');
     }
@@ -144,6 +151,23 @@ class HomeTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authProvider);
     final isLoggedIn = authState.isLoggedIn;
+
+    // Preload "My Booking" data to power the "Booking gần đây" section
+    if (isLoggedIn) {
+      final user = authState.user;
+      final token = user?.token;
+      if (user != null && token != null && token.isNotEmpty) {
+        final bookingState = ref.watch(myBookingProvider);
+        if (!bookingState.initialized || bookingState.userId != user.id) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            ref.read(myBookingProvider.notifier).initialize(
+                  userId: user.id,
+                  token: token,
+                );
+          });
+        }
+      }
+    }
     
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -156,7 +180,7 @@ class HomeTab extends ConsumerWidget {
               _buildQuickActions(context),
               _buildMostExpensive(context),
               _buildRecommendedForYou(context),
-              _buildRecentBookings(context, isLoggedIn: true),
+              _buildRecentBookings(context, ref, isLoggedIn: true),
               //_buildBestToday(context),
             ] else ...[
               _buildHeader(context),
@@ -166,11 +190,12 @@ class HomeTab extends ConsumerWidget {
               _buildRecommendedForYou(context),
               _buildMostExpensive(context),
               _buildSpecialOffers(context),
-              _buildCustomerReviews(context),
+
             ],
             _buildSpecialOffersShared(context),
             _buildAroundHotel(context),
             _buildFoodAndNature(context),
+            _buildCustomerReviews(context),
             const SizedBox(height: 100),
           ],
         ),
@@ -940,11 +965,101 @@ class HomeTab extends ConsumerWidget {
     );
   }
 
-  Widget _buildRecentBookings(BuildContext context, {bool isLoggedIn = false}) {
+  Widget _buildRecentBookings(
+    BuildContext context,
+    WidgetRef ref, {
+    bool isLoggedIn = false,
+  }) {
     // Chỉ hiển thị nếu user đã đăng nhập
     if (!isLoggedIn) {
       return const SizedBox.shrink();
     }
+
+    final bookingState = ref.watch(myBookingProvider);
+    final BookingBillGroup? group = bookingState.historyBookings.isNotEmpty
+        ? bookingState.historyBookings.first
+        : (bookingState.bookedBookings.isNotEmpty
+            ? bookingState.bookedBookings.first
+            : null);
+
+    if (bookingState.isLoading && group == null) {
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: AppColors.cardBackground,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.shadow.withOpacity(0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: const SizedBox(
+          height: 80,
+          child: Center(
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (bookingState.errorMessage != null && group == null) {
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: AppColors.cardBackground,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.shadow.withOpacity(0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.error_outline, color: AppColors.error),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                bookingState.errorMessage!,
+                style: const TextStyle(color: AppColors.textSecondary),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            TextButton(
+              onPressed: () => ref.read(myBookingProvider.notifier).refresh(),
+              child: const Text('Thử lại'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (group == null) {
+      return const SizedBox.shrink();
+    }
+
+    final isHistory = bookingState.historyBookings.any((g) => g.billId == group.billId);
+    final dateText =
+        '${AppDateUtils.formatDmy(group.contractCheckInTime)} - ${AppDateUtils.formatDmy(group.contractCheckOutTime)}';
+
+    final imageUrl =
+        ImageUtils.defaultRoomImages[group.billId % ImageUtils.defaultRoomImages.length];
+
+    final title = group.bookings.isEmpty
+        ? 'Hóa đơn #${group.billId}'
+        : (group.bookings.length == 1
+            ? 'Phòng ${group.bookings.first.roomNumber} • ${group.bookings.first.roomType}'
+            : '${group.bookings.length} phòng • Hóa đơn #${group.billId}');
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -972,59 +1087,75 @@ class HomeTab extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
-          Row(
-            children: [
-              Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  image: const DecorationImage(
-                    image: NetworkImage('https://images.unsplash.com/photo-1564501049412-61c2a3083791?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80'),
-                    fit: BoxFit.cover,
+          InkWell(
+            onTap: () => NavigationUtils.openBookingDetail(context, group),
+            borderRadius: BorderRadius.circular(12),
+            child: Row(
+              children: [
+                Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    image: DecorationImage(
+                      image: NetworkImage(imageUrl),
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 16),
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Grand Hotel Saigon',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      '15-17 Tháng 11, 2024',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppColors.textSecondary,
+                      const SizedBox(height: 4),
+                      Text(
+                        dateText,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: AppColors.textSecondary,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: AppColors.success.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Text(
-                  'Hoàn thành',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.success,
+                      const SizedBox(height: 4),
+                      Text(
+                        PriceUtils.formatVnd(group.totalMoney),
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-            ],
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: (isHistory ? AppColors.success : AppColors.warning)
+                        .withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    isHistory ? 'Hoàn thành' : 'Sắp tới',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: isHistory ? AppColors.success : AppColors.warning,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -1035,6 +1166,7 @@ class HomeTab extends ConsumerWidget {
     return Consumer(
       builder: (context, ref, child) {
         final reviewState = ref.watch(reviewProvider);
+        final isLoggedIn = ref.watch(authProvider).isLoggedIn;
 
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!reviewState.hasLoaded && !reviewState.isLoading) {
@@ -1042,15 +1174,34 @@ class HomeTab extends ConsumerWidget {
           }
         });
 
-        final title = const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-          child: Text(
-            'Đánh giá từ khách hàng',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
-            ),
+        final title = Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          child: Row(
+            children: [
+              const Expanded(
+                child: Text(
+                  'Đánh giá từ khách hàng',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const ReviewsScreen()),
+                  );
+                },
+                child: const Text(
+                  'Xem tất cả',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
           ),
         );
 
