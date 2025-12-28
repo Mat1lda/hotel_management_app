@@ -538,15 +538,6 @@ class _ReviewsScreenState extends ConsumerState<ReviewsScreen> {
                               ),
                       ),
                     ),
-                    const SizedBox(height: 10),
-                    Text(
-                      'Sentiment API local: ${SentimentService.resolveBaseUrl()}/sentiment',
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 12,
-                        height: 1.3,
-                      ),
-                    ),
                   ],
                 ),
               )

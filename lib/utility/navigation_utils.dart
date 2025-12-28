@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../model/booking_bill_group.dart';
 import '../model/response/room_type_response.dart';
 import '../screen/booking_detail_screen.dart';
@@ -21,6 +22,16 @@ class NavigationUtils {
         builder: (_) => BookingDetailScreen(group: group),
       ),
     );
+  }
+
+  static Future<bool> openExternalUrl(String url) async {
+    final uri = Uri.tryParse(url);
+    if (uri == null) return false;
+    try {
+      return await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (_) {
+      return false;
+    }
   }
 }
 

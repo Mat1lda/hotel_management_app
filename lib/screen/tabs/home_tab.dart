@@ -9,11 +9,14 @@ import '../../provider/room_provider.dart';
 import '../../provider/review_provider.dart';
 import '../../utility/image_utils.dart';
 import '../../provider/service_provider.dart';
+import '../../provider/location_provider.dart';
 import '../../model/response/room_type_response.dart';
 import '../../utility/navigation_utils.dart';
 import '../../model/booking_bill_group.dart';
 import '../../utility/price_utils.dart';
 import '../reviews_screen.dart';
+import '../locations_screen.dart';
+import '../location_detail_screen.dart';
 
 class HomeTab extends ConsumerWidget {
   const HomeTab({super.key});
@@ -23,71 +26,6 @@ class HomeTab extends ConsumerWidget {
 
   void _onRoomPressed(BuildContext context, RoomTypeResponse room) {
     NavigationUtils.openRoomDetail(context, room);
-  }
-
-  Widget _buildMiniInfoCard({
-    required String title,
-    required String distance,
-    required IconData icon,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.shadow.withOpacity(0.06),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, size: 20, color: AppColors.primary),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              title,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                height: 1.2,
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.08),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              distance,
-              style: const TextStyle(
-                color: AppColors.primary,
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   void _onJoinFreePressed(BuildContext context) {
@@ -193,9 +131,10 @@ class HomeTab extends ConsumerWidget {
 
             ],
             _buildSpecialOffersShared(context),
+            _buildBoutiqueExperience(context),
             _buildAroundHotel(context),
-            _buildFoodAndNature(context),
             _buildCustomerReviews(context),
+            _buildFacebookGroupReviews(context),
             const SizedBox(height: 100),
           ],
         ),
@@ -203,103 +142,46 @@ class HomeTab extends ConsumerWidget {
     );
   }
 
-  Widget _buildAroundHotel(BuildContext context) {
-    const description =
-        'Phố cổ Hà Nội thu hút nhiều du khách đến xem biểu diễn ở Nhà hát múa rối Thăng Long hay đi dạo chợ đêm. '
-        'Bạn sẽ tìm thấy sự tĩnh lặng quanh Hồ Hoàn Kiếm, nơi ưa chuộng của người tập Thái Cực Quyền.';
+  Widget _buildFacebookGroupReviews(BuildContext context) {
+    const String groupUrl =
+        'https://www.facebook.com/groups/1429913791854440?locale=vi_VN';
 
-    final nearbyBasics = [
-      {'name': 'Khu Vui Chơi Trẻ Em', 'distance': '500 m', 'icon': Icons.park},
-      {'name': 'Dong Kinh Nghia Thuc Square', 'distance': '550 m', 'icon': Icons.landscape},
-      {'name': 'Ô Quan Chưởng', 'distance': '750 m', 'icon': Icons.account_balance},
-      {'name': 'Vườn Hoa Quang Trung', 'distance': '850 m', 'icon': Icons.local_florist},
-    ];
-
-    final topAttractions = [
-      {'name': 'Hoàng thành Thăng Long', 'distance': '1,6 km'},
-      {'name': 'Bảo tàng mỹ thuật Việt Nam', 'distance': '1,6 km'},
-      {'name': 'Văn Miếu – Quốc Tử Giám', 'distance': '1,8 km'},
-      {'name': 'Bảo tàng lịch sử Quốc gia', 'distance': '1,9 km'},
-      {'name': 'Cầu Long Biên', 'distance': '2,1 km'},
-    ];
-
-    final transport = [
-      {'name': 'Tàu lửa – Ga Hà Nội', 'distance': '1,5 km'},
-    ];
-
-    final airports = [
-      {'name': 'Sân bay Quốc tế Nội Bài', 'distance': '23 km'},
-    ];
-
-    Widget buildTitle(String text) {
+    Widget titleSection() {
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-        child: Text(
-          text,
-          style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
-          ),
-        ),
-      );
-    }
-
-    Widget buildListCard(List<Map<String, dynamic>> items,
-        {IconData? defaultIcon}) {
-      return Container(
-        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppColors.cardBackground,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.shadow.withOpacity(0.06),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
+        child: Row(
+          children: [
+            const Expanded(
+              child: Text(
+                'Cộng đồng Facebook',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () async {
+                final ok = await NavigationUtils.openExternalUrl(groupUrl);
+                if (!context.mounted) return;
+                if (!ok) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Không mở được liên kết Facebook.'),
+                      backgroundColor: AppColors.primary,
+                    ),
+                  );
+                }
+              },
+              child: const Text(
+                'Mở group',
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ),
           ],
-        ),
-        child: Column(
-          children: items.map((e) {
-            final icon = e['icon'] as IconData? ?? defaultIcon ?? Icons.place;
-            return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Row(
-                children: [
-                  Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.08),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(icon, size: 18, color: AppColors.primary),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      e['name'] as String,
-                      style: const TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  Text(
-                    e['distance'] as String,
-                    style: const TextStyle(
-                      color: AppColors.textSecondary,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }).toList(),
         ),
       );
     }
@@ -307,316 +189,668 @@ class HomeTab extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        buildTitle('Xung quanh khách sạn'),
-        Container(
-          margin: const EdgeInsets.symmetric(horizontal: 20),
-          height: 140,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            image: const DecorationImage(
-              image: NetworkImage(
-                  'https://tl.cdnchinhphu.vn/Uploads/images/pho%20co(2).jpg'),
-              fit: BoxFit.cover,
-            ),
-          ),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.black.withOpacity(0.1),
-                  Colors.black.withOpacity(0.6),
+        titleSection(),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: InkWell(
+            onTap: () async {
+              final ok = await NavigationUtils.openExternalUrl(groupUrl);
+              if (!context.mounted) return;
+              if (!ok) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Không mở được liên kết Facebook.'),
+                    backgroundColor: AppColors.primary,
+                  ),
+                );
+              }
+            },
+            borderRadius: BorderRadius.circular(14),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.cardBackground,
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.shadow.withOpacity(0.08),
+                    blurRadius: 10,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(10),
+                      child: Image.asset(
+                        'assets/facebook.png',
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Xem review & chia sẻ trải nghiệm',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.textPrimary,
+                            height: 1.2,
+                          ),
+                        ),
+                        SizedBox(height: 6),
+                        Text(
+                          'Review được đăng trên Facebook Group. Bấm để mở và xem đầy đủ nội dung.',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textSecondary,
+                            height: 1.35,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Mở',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                        SizedBox(width: 6),
+                        Icon(Icons.open_in_new, size: 16, color: AppColors.primary),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
-            padding: const EdgeInsets.all(16),
-            child: Align(
-              alignment: Alignment.bottomLeft,
-              child: Text(
-                description,
-                maxLines: 4,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: AppColors.cardBackground,
-                  fontSize: 13,
-                  height: 1.3,
-                ),
-              ),
-            ),
           ),
         ),
-        const SizedBox(height: 12),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-          child: const Text(
-            'Khu vực công cộng?',
-            style: TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
-        buildListCard(nearbyBasics),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-          child: const Text(
-            'Địa điểm tham quan hàng đầu',
-            style: TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
-        buildListCard(topAttractions, defaultIcon: Icons.museum),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-          child: Row(
-            children: [
-              Expanded(
-                child: _buildMiniInfoCard(
-                  title: transport.first['name'] as String,
-                  distance: transport.first['distance'] as String,
-                  icon: Icons.train,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildMiniInfoCard(
-                  title: airports.first['name'] as String,
-                  distance: airports.first['distance'] as String,
-                  icon: Icons.flight_takeoff,
-                ),
-              ),
-            ],
-          ),
-        ),
+        const SizedBox(height: 10),
       ],
     );
   }
 
-  Widget _buildFoodAndNature(BuildContext context) {
-    final restaurants = [
-      {
-        'name': 'Xôi Chè Bà Thìn',
-        'distance': '30 m',
-        'image':
-            'https://mia.vn/media/uploads/blog-du-lich/xoi-che-ba-thin-dia-chi-quen-thuoc-cua-cac-tin-do-me-do-ngot-tai-ha-noi-01-1639324767.jpg'
-      },
-      {
-        'name': 'Nhà Hàng Gecko',
-        'distance': '50 m',
-        'image':
-            'https://mia.vn/media/uploads/blog-du-lich/co-mot-gecko-cafe-restaurant-doc-dao-trong-long-pho-hue-1638919602.jpg'
-      },
-      {
-        'name': 'Nhà Hàng Jackbo',
-        'distance': '50 m',
-        'image':
-            'https://www.yeebo.com.vn/wp-content/uploads/2019/07/dsc01826-e-scaled.jpg'
-      },
-    ];
+  Widget _buildBoutiqueExperience(BuildContext context) {
+    return Consumer(
+      builder: (context, ref, child) {
+        final state = ref.watch(boutiqueExperiencePreviewProvider);
 
-    final nature = [
-      {
-        'name': 'Hồ Hoàn Kiếm',
-        'distance': '800 m',
-        'image':
-            'https://image-tc.galaxy.tf/wipng-daexn19ej5lhhexs5yjcrc003/vietnam-trip-1.png'
-      },
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-          child: Text(
-            'Ăn uống',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
+        Widget titleSection() {
+          return const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            child: Text(
+              'Trải nghiệm cùng khách sạn',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
             ),
-          ),
-        ),
-        // Restaurants
-        SizedBox(
-          height: 160,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
+          );
+        }
+
+        Widget card({
+          required String title,
+          String? description,
+          String? imageUrl,
+          required List<String> highlights,
+          required String url,
+          bool showLoading = false,
+        }) {
+          return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
-            itemCount: restaurants.length,
-            itemBuilder: (context, index) {
-              final r = restaurants[index];
-              return Container(
-                width: 280,
-                margin: const EdgeInsets.only(right: 12),
+            child: InkWell(
+              onTap: () async {
+                final ok = await NavigationUtils.openExternalUrl(url);
+                if (!context.mounted) return;
+                if (!ok) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Không mở được trang web.'),
+                      backgroundColor: AppColors.primary,
+                    ),
+                  );
+                }
+              },
+              borderRadius: BorderRadius.circular(14),
+              child: Container(
                 decoration: BoxDecoration(
                   color: AppColors.cardBackground,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(14),
                   boxShadow: [
                     BoxShadow(
                       color: AppColors.shadow.withOpacity(0.08),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
+                      blurRadius: 10,
+                      offset: const Offset(0, 6),
                     ),
                   ],
                 ),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      width: 140,
-                      height: 140,
-                      margin: const EdgeInsets.all(10),
+                      height: 150,
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        image: DecorationImage(
-                          image: NetworkImage(r['image']!),
-                          fit: BoxFit.cover,
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(14),
                         ),
+                        color: AppColors.background,
+                        image: (imageUrl != null && imageUrl.trim().isNotEmpty)
+                            ? DecorationImage(
+                                image: NetworkImage(imageUrl),
+                                fit: BoxFit.cover,
+                              )
+                            : null,
                       ),
-                    ),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              r['name']!,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color: AppColors.textPrimary,
-                                fontSize: 15,
-                                fontWeight: FontWeight.w700,
-                                height: 1.3,
+                      child: (imageUrl == null || imageUrl.trim().isEmpty)
+                          ? Center(
+                              child: Image.asset(
+                                'assets/hotel_logo.png',
+                                width: 80,
+                                height: 80,
+                                fit: BoxFit.contain,
                               ),
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                const Icon(Icons.place,
-                                    size: 16, color: AppColors.primary),
-                                const SizedBox(width: 4),
-                                Text(
-                                  r['distance']!,
+                            )
+                          : null,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  title,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
-                                    color: AppColors.primary,
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.textPrimary,
+                                    height: 1.2,
                                   ),
                                 ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ),
-        const SizedBox(height: 12),
-        // Nature
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-          child: const Text(
-            'Cảnh đẹp thiên nhiên',
-            style: TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
-        SizedBox(
-          height: 160,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            itemCount: nature.length,
-            itemBuilder: (context, index) {
-              final n = nature[index];
-              return Container(
-                width: 300,
-                margin: const EdgeInsets.only(right: 12),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  image: DecorationImage(
-                    image: NetworkImage(n['image']!),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.transparent,
-                        Colors.black.withOpacity(0.6),
-                      ],
-                    ),
-                  ),
-                  padding: const EdgeInsets.all(16),
-                  child: Align(
-                    alignment: Alignment.bottomLeft,
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            n['name']!,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: AppColors.cardBackground,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: AppColors.cardBackground.withOpacity(0.85),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.place,
-                                  size: 12, color: AppColors.primary),
-                              const SizedBox(width: 4),
-                              Text(
-                                n['distance']!,
-                                style: const TextStyle(
-                                  color: AppColors.textPrimary,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
+                              ),
+                              const SizedBox(width: 10),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary.withOpacity(0.08),
+                                  borderRadius: BorderRadius.circular(999),
+                                ),
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      'Mở',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w800,
+                                        color: AppColors.primary,
+                                      ),
+                                    ),
+                                    SizedBox(width: 6),
+                                    Icon(
+                                      Icons.open_in_new,
+                                      size: 16,
+                                      color: AppColors.primary,
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
                           ),
-                        ),
+                          if (description != null && description.trim().isNotEmpty) ...[
+                            const SizedBox(height: 8),
+                            Text(
+                              description,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textSecondary,
+                                height: 1.35,
+                              ),
+                            ),
+                          ],
+                          const SizedBox(height: 12),
+                          if (showLoading)
+                            Row(
+                              children: const [
+                                SizedBox(
+                                  width: 14,
+                                  height: 14,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      AppColors.primary,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(width: 10),
+                                Text(
+                                  'Đang tải nội dung từ website...',
+                                  style: TextStyle(
+                                    color: AppColors.textSecondary,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            )
+                          else
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: highlights.take(4).map((t) {
+                                return Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.background,
+                                    borderRadius: BorderRadius.circular(999),
+                                    border: Border.all(
+                                      color: AppColors.primary.withOpacity(0.14),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    t,
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.textPrimary,
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            titleSection(),
+            state.when(
+              loading: () => card(
+                title: 'Boutique Experience',
+                description: 'Trải nghiệm cùng khách sạn — nghỉ dưỡng, khám phá và thư giãn.',
+                imageUrl: null,
+                highlights: const [],
+                url: 'https://hanoilechateauhotelandspa.com/boutique-experience/',
+                showLoading: true,
+              ),
+              error: (_, __) => card(
+                title: 'Boutique Experience',
+                description: 'Trải nghiệm cùng khách sạn — nghỉ dưỡng, khám phá và thư giãn.',
+                imageUrl: null,
+                highlights: const [
+                  'Chào đón tại lễ tân',
+                  'Thư giãn trong phòng',
+                  'Khám phá phố cổ Hà Nội',
+                  'Thư giãn tại Château Spa',
+                ],
+                url: 'https://hanoilechateauhotelandspa.com/boutique-experience/',
+              ),
+              data: (p) => card(
+                title: p.title,
+                description: p.description,
+                imageUrl: p.imageUrl,
+                highlights: p.highlights.isNotEmpty
+                    ? p.highlights
+                    : const [
+                        'Chào đón tại lễ tân',
+                        'Thư giãn trong phòng',
+                        'Khám phá phố cổ Hà Nội',
+                        'Thư giãn tại Château Spa',
                       ],
+                url: p.url,
+              ),
+            ),
+            const SizedBox(height: 10),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildAroundHotel(BuildContext context) {
+    return Consumer(
+      builder: (context, ref, child) {
+        final locationState = ref.watch(locationProvider);
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!locationState.hasLoaded && !locationState.isLoading) {
+            ref.read(locationProvider.notifier).loadLocations();
+          }
+        });
+
+        void openAll() {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const LocationsScreen()),
+          );
+        }
+
+        Widget titleSection() {
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Địa điểm gần bạn',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                TextButton(
+                  onPressed: openAll,
+                  child: const Text(
+                    'Xem tất cả',
+                    style: TextStyle(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
-              );
-            },
-          ),
-        ),
-      ],
+              ],
+            ),
+          );
+        }
+
+        Widget buildPreviewCard({
+          required String title,
+          required String subtitle,
+          required String imageUrl,
+          required VoidCallback onTap,
+        }) {
+          return SizedBox(
+            width: 240,
+            child: InkWell(
+              onTap: onTap,
+              borderRadius: BorderRadius.circular(14),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppColors.cardBackground,
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.shadow.withOpacity(0.08),
+                      blurRadius: 12,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                  image: imageUrl.trim().isNotEmpty
+                      ? DecorationImage(
+                          image: NetworkImage(imageUrl),
+                          fit: BoxFit.cover,
+                        )
+                      : null,
+                ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(14),
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.black.withOpacity(0.05),
+                        Colors.black.withOpacity(0.65),
+                      ],
+                    ),
+                  ),
+                  padding: const EdgeInsets.all(14),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.16),
+                          borderRadius: BorderRadius.circular(999),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.22),
+                          ),
+                        ),
+                        child: const Text(
+                          'Gợi ý',
+                          style: TextStyle(
+                            color: AppColors.cardBackground,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                      const Spacer(),
+                      Text(
+                        title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: AppColors.cardBackground,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          height: 1.2,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        subtitle,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: AppColors.cardBackground.withOpacity(0.9),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          height: 1.25,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        }
+
+        if (locationState.isLoading && locationState.locations.isEmpty) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              titleSection(),
+              const SizedBox(
+                height: 160,
+                child: Center(
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                  ),
+                ),
+              ),
+            ],
+          );
+        }
+
+        if (locationState.errorMessage != null &&
+            locationState.locations.isEmpty) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              titleSection(),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.cardBackground,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.shadow.withOpacity(0.08),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.error_outline, color: AppColors.error),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          locationState.errorMessage!,
+                          style: const TextStyle(color: AppColors.textSecondary),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () =>
+                            ref.read(locationProvider.notifier).loadLocations(),
+                        child: const Text('Thử lại'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          );
+        }
+
+        final items = locationState.locations.take(2).toList();
+        if (items.isEmpty) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              titleSection(),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: Text(
+                  'Chưa có địa điểm nào để hiển thị',
+                  style: TextStyle(color: AppColors.textSecondary),
+                ),
+              ),
+              const SizedBox(height: 10),
+            ],
+          );
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            titleSection(),
+            SizedBox(
+              height: 160,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                itemCount: items.length + 1,
+                separatorBuilder: (_, __) => const SizedBox(width: 12),
+                itemBuilder: (context, index) {
+                  if (index == items.length) {
+                    return SizedBox(
+                      width: 160,
+                      child: InkWell(
+                        onTap: openAll,
+                        borderRadius: BorderRadius.circular(14),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: AppColors.cardBackground,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: AppColors.primary.withOpacity(0.18),
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.shadow.withOpacity(0.06),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: const Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.grid_view,
+                                    color: AppColors.primary, size: 28),
+                                SizedBox(height: 10),
+                                Text(
+                                  'Xem tất cả',
+                                  style: TextStyle(
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }
+
+                  final location = items[index];
+                  return buildPreviewCard(
+                    title: location.name,
+                    subtitle: location.description,
+                    imageUrl: location.thumbnail,
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              LocationDetailScreen(location: location),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
