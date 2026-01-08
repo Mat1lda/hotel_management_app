@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../model/booking_bill_group.dart';
 import '../model/response/room_type_response.dart';
+import '../model/response/service_response.dart';
 import '../screen/booking_detail_screen.dart';
+import '../screen/service_detail_screen.dart';
+import '../screen/services_screen.dart';
 import '../screen/room_detail_screen.dart';
 
 class NavigationUtils {
@@ -20,6 +23,22 @@ class NavigationUtils {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => BookingDetailScreen(group: group),
+      ),
+    );
+  }
+
+  static void openServices(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => const ServicesScreen(),
+      ),
+    );
+  }
+
+  static void openServiceDetail(BuildContext context, ServiceResponse service) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ServiceDetailScreen(service: service),
       ),
     );
   }

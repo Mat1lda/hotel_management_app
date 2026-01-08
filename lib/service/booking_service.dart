@@ -164,6 +164,78 @@ class BookingService {
       };
     }
   }
+
+  Future<Map<String, dynamic>> cancelBooking({
+    required int bookingId,
+    required String token,
+  }) async {
+    try {
+      final response = await _dio.put(
+        '/booking/cancel/$bookingId',
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+
+      final data = response.data;
+      String? message;
+      if (data is Map) {
+        message = data['message']?.toString();
+      }
+
+      return {
+        'success': true,
+        'data': response.data,
+        'message': message ?? 'Hủy đặt phòng thành công',
+      };
+    } on DioException catch (e) {
+      String errorMessage = 'Có lỗi xảy ra khi hủy đặt phòng';
+
+      if (e.response != null) {
+        final statusCode = e.response!.statusCode;
+        final responseData = e.response!.data;
+
+        switch (statusCode) {
+          case 401:
+            errorMessage = 'Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại';
+            break;
+          case 403:
+            errorMessage = 'Bạn không có quyền thực hiện thao tác này';
+            break;
+          case 404:
+            errorMessage =
+                (responseData is Map ? responseData['message'] : null) ??
+                    'Không tìm thấy booking';
+            break;
+          case 409:
+            errorMessage =
+                (responseData is Map ? responseData['message'] : null) ??
+                    'Booking không thể hủy ở thời điểm hiện tại';
+            break;
+          case 500:
+            errorMessage = 'Lỗi server, vui lòng thử lại sau';
+            break;
+          default:
+            errorMessage =
+                (responseData is Map ? responseData['message'] : null) ??
+                    'Hủy đặt phòng thất bại';
+        }
+      } else if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout) {
+        errorMessage = 'Kết nối timeout, vui lòng kiểm tra mạng';
+      } else if (e.type == DioExceptionType.connectionError) {
+        errorMessage = 'Không thể kết nối đến server';
+      }
+
+      return {
+        'success': false,
+        'message': errorMessage,
+      };
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Có lỗi không xác định xảy ra: $e',
+      };
+    }
+  }
 }
 
 

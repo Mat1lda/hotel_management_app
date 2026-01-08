@@ -48,6 +48,36 @@ class User {
       avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80',
     );
   }
+
+  User copyWith({
+    int? id,
+    String? name,
+    String? email,
+    String? phone,
+    String? gender,
+    String? address,
+    DateTime? dob,
+    String? identification,
+    String? username,
+    String? roleName,
+    String? token,
+    String? avatar,
+  }) {
+    return User(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      email: email ?? this.email,
+      phone: phone ?? this.phone,
+      gender: gender ?? this.gender,
+      address: address ?? this.address,
+      dob: dob ?? this.dob,
+      identification: identification ?? this.identification,
+      username: username ?? this.username,
+      roleName: roleName ?? this.roleName,
+      token: token ?? this.token,
+      avatar: avatar ?? this.avatar,
+    );
+  }
 }
 
 class AuthState {
@@ -147,6 +177,50 @@ class AuthNotifier extends Notifier<AuthState> {
     }
   }
 
+  Future<String?> refreshMe() async {
+    final token = state.user?.token;
+    if (token == null || token.isEmpty) {
+      return 'Bạn cần đăng nhập để xem hồ sơ.';
+    }
+
+    state = state.copyWith(isLoading: true);
+    try {
+      final result = await _authService.getUserInfo(token);
+
+      if (result['success'] == true) {
+        final userResponse = result['data'] as UserResponse;
+        final current = state.user;
+        final updated = (current == null)
+            ? User.fromUserResponse(userResponse, token: token)
+            : current.copyWith(
+                id: userResponse.id,
+                name: userResponse.name,
+                email: userResponse.username,
+                phone: userResponse.phone,
+                gender: userResponse.gender,
+                address: userResponse.address,
+                dob: userResponse.dob,
+                identification: userResponse.identification,
+                username: userResponse.username,
+                roleName: userResponse.roleName,
+              );
+
+        state = state.copyWith(
+          isLoggedIn: true,
+          user: updated,
+          isLoading: false,
+        );
+        return null;
+      }
+
+      state = state.copyWith(isLoading: false);
+      return (result['message'] as String?) ?? 'Không thể tải thông tin người dùng.';
+    } catch (_) {
+      state = state.copyWith(isLoading: false);
+      return 'Có lỗi xảy ra khi tải thông tin người dùng.';
+    }
+  }
+
 
   void logout() {
     state = const AuthState();
@@ -154,21 +228,11 @@ class AuthNotifier extends Notifier<AuthState> {
 
   void updateLocation(String newLocation) {
     if (state.user != null) {
-      final updatedUser = User(
-        id: state.user!.id,
-        name: state.user!.name,
-        email: state.user!.email,
-        phone: state.user!.phone,
-        gender: state.user!.gender,
-        address: newLocation, // Cập nhật address thay vì location
-        dob: state.user!.dob,
-        identification: state.user!.identification,
-        username: state.user!.username,
-        roleName: state.user!.roleName,
-        token: state.user!.token,
-        avatar: state.user!.avatar,
+      state = state.copyWith(
+        user: state.user!.copyWith(
+          address: newLocation, // Cập nhật address thay vì location
+        ),
       );
-      state = state.copyWith(user: updatedUser);
     }
   }
 }

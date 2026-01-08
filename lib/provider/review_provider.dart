@@ -113,7 +113,7 @@ class ReviewNotifier extends Notifier<ReviewState> {
   }
 }
 
-final reviewProvider = NotifierProvider.autoDispose<ReviewNotifier, ReviewState>(() {
+final reviewProvider = NotifierProvider<ReviewNotifier, ReviewState>(() {
   return ReviewNotifier();
 });
 

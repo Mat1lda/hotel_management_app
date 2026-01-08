@@ -21,6 +21,9 @@ import '../location_detail_screen.dart';
 class HomeTab extends ConsumerWidget {
   const HomeTab({super.key});
 
+  static const String _kPlaceholderAvatarUrl =
+      'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80';
+
   void _onBookNowPressed() {
   }
 
@@ -45,6 +48,8 @@ class HomeTab extends ConsumerWidget {
       Navigator.of(context).pushNamed('/search');
     } else if (action == 'offers') {
       Navigator.of(context).pushNamed('/offers');
+    } else if (action == 'services') {
+      NavigationUtils.openServices(context);
     } else {
       print('Quick action: $action');
     }
@@ -114,7 +119,6 @@ class HomeTab extends ConsumerWidget {
           children: [
             if (isLoggedIn) ...[
               _buildLoggedInHeader(context, authState.user!),
-              _buildLocationSelector(context, authState.user!),
               _buildQuickActions(context),
               _buildMostExpensive(context),
               _buildRecommendedForYou(context),
@@ -1623,6 +1627,9 @@ class HomeTab extends ConsumerWidget {
 
   // Logged-in user layouts
   Widget _buildLoggedInHeader(BuildContext context, User user) {
+    final String avatarUrl = user.avatar.trim();
+    final bool useAssetAvatar = avatarUrl.isEmpty || avatarUrl == _kPlaceholderAvatarUrl;
+
     return Container(
       padding: const EdgeInsets.only(top: 50, left: 20, right: 20, bottom: 20),
       decoration: const BoxDecoration(
@@ -1630,9 +1637,26 @@ class HomeTab extends ConsumerWidget {
       ),
       child: Row(
         children: [
-          CircleAvatar(
-            radius: 25,
-            backgroundImage: NetworkImage(user.avatar),
+          SizedBox(
+            width: 50,
+            height: 50,
+            child: ClipOval(
+              child: useAssetAvatar
+                  ? Image.asset(
+                      'assets/hotel_logo.png',
+                      fit: BoxFit.contain,
+                    )
+                  : Image.network(
+                      avatarUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) {
+                        return Image.asset(
+                          'assets/hotel_logo.png',
+                          fit: BoxFit.contain,
+                        );
+                      },
+                    ),
+            ),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -1672,13 +1696,6 @@ class HomeTab extends ConsumerWidget {
               IconButton(
                 onPressed: () {},
                 icon: const Icon(
-                  Icons.search,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              IconButton(
-                onPressed: () {},
-                icon: const Icon(
                   Icons.notifications_outlined,
                   color: AppColors.textPrimary,
                 ),
@@ -1707,45 +1724,6 @@ class HomeTab extends ConsumerWidget {
                 ),
               ),
             ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLocationSelector(BuildContext context, User user) {
-    return Container(
-      margin: const EdgeInsets.all(20),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppColors.primary.withOpacity(0.3),
-          width: 1,
-        ),
-      ),
-      child: Row(
-        children: [
-          const Icon(
-            Icons.location_on,
-            color: AppColors.primary,
-            size: 20,
-          ),
-          const SizedBox(width: 12),
-          const Expanded(
-            child: Text(
-              'Bạn có thể thay đổi vị trí để hiển thị các villa gần đó',
-              style: TextStyle(
-                fontSize: 14,
-                color: AppColors.textPrimary,
-              ),
-            ),
-          ),
-          const Icon(
-            Icons.chevron_right,
-            color: AppColors.primary,
-            size: 20,
           ),
         ],
       ),
@@ -2143,7 +2121,7 @@ class HomeTab extends ConsumerWidget {
               return Container(
                 margin: const EdgeInsets.only(bottom: 16),
                 child: InkWell(
-                  onTap: () => _onHotelPressed(item.id.toString()),
+                  onTap: () => NavigationUtils.openServiceDetail(context, item),
                   borderRadius: BorderRadius.circular(12),
                   child: Row(
                     children: [

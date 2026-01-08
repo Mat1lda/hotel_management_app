@@ -33,6 +33,14 @@ class _ReviewsScreenState extends ConsumerState<ReviewsScreen> {
 
   bool _isSubmitting = false;
   int _selectedStar = 5;
+  String _selectedType = 'HOTEL';
+
+  static const List<({String label, String value})> _reviewTypes = [
+    (label: 'Khách sạn', value: 'HOTEL'),
+    (label: 'Phòng', value: 'ROOM'),
+    (label: 'Dịch vụ', value: 'SERVICE'),
+    (label: 'Vị trí', value: 'LOCATION'),
+  ];
 
   @override
   void initState() {
@@ -130,7 +138,7 @@ class _ReviewsScreenState extends ConsumerState<ReviewsScreen> {
       final req = ReviewCreateRequest(
         details: text,
         star: _selectedStar,
-        type: 'HOTEL',
+        type: _selectedType,
         idCustomer: authState.user!.id,
       );
       final result = await _reviewService.createReview(req, token: token);
@@ -143,6 +151,7 @@ class _ReviewsScreenState extends ConsumerState<ReviewsScreen> {
           _suggestedStars = null;
           _analyzeError = null;
           _selectedStar = 5;
+          _selectedType = 'HOTEL';
         });
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -210,6 +219,63 @@ class _ReviewsScreenState extends ConsumerState<ReviewsScreen> {
             color: AppColors.textPrimary,
             fontWeight: FontWeight.w700,
           ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTypePicker() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Loại đánh giá',
+          style: TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: _reviewTypes.map((t) {
+            final selected = _selectedType == t.value;
+            final bg = selected
+                ? AppColors.primary.withOpacity(0.12)
+                : AppColors.background;
+            final fg = selected ? AppColors.primary : AppColors.textPrimary;
+            return ChoiceChip(
+              label: Text(
+                t.label,
+                style: TextStyle(
+                  color: fg,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 12,
+                ),
+              ),
+              selected: selected,
+              onSelected: _isSubmitting
+                  ? null
+                  : (v) {
+                      if (!v) return;
+                      setState(() => _selectedType = t.value);
+                    },
+              selectedColor: bg,
+              backgroundColor: bg,
+              side: BorderSide(
+                color: selected
+                    ? AppColors.primary.withOpacity(0.35)
+                    : AppColors.border,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(999),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            );
+          }).toList(),
         ),
       ],
     );
@@ -478,6 +544,8 @@ class _ReviewsScreenState extends ConsumerState<ReviewsScreen> {
                     ),
                     const SizedBox(height: 10),
                     _buildStarPicker(),
+                    const SizedBox(height: 14),
+                    _buildTypePicker(),
                     const SizedBox(height: 12),
                     TextField(
                       controller: _detailsController,
@@ -634,6 +702,23 @@ class _ReviewItem extends StatelessWidget {
   final ReviewResponse review;
   const _ReviewItem({required this.review});
 
+  String _typeLabel(String? value) {
+    final s = (value ?? '').trim();
+    if (s.isEmpty) return '';
+    switch (s) {
+      case 'HOTEL':
+        return 'Khách sạn';
+      case 'ROOM':
+        return 'Phòng';
+      case 'SERVICE':
+        return 'Dịch vụ';
+      case 'LOCATION':
+        return 'Vị trí';
+      default:
+        return s;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final String name = review.customerName;
@@ -641,8 +726,8 @@ class _ReviewItem extends StatelessWidget {
     final String dateText = review.day != null
         ? '${review.day!.day.toString().padLeft(2, '0')}/${review.day!.month.toString().padLeft(2, '0')}/${review.day!.year}'
         : '';
-    final String footerText =
-        (review.type != null && review.type!.isNotEmpty) ? review.type! : dateText;
+    final typeText = _typeLabel(review.type);
+    final String footerText = typeText.isNotEmpty ? typeText : dateText;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),

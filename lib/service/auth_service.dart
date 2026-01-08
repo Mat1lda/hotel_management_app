@@ -178,7 +178,7 @@ class AuthService {
   Future<Map<String, dynamic>> getUserInfo(String token) async {
     try {
       final response = await _dio.get(
-        '/user',
+        '/user/me',
         options: Options(
           headers: {
             'Authorization': 'Bearer $token',
@@ -191,7 +191,7 @@ class AuthService {
       return {
         'success': true,
         'data': userResponse,
-        'message': 'Lấy thông tin user thành công',
+        'message': 'Lấy thông tin người dùng thành công',
       };
     } on DioException catch (e) {
       String errorMessage = 'Có lỗi xảy ra khi lấy thông tin user';

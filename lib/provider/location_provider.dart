@@ -80,7 +80,7 @@ class LocationNotifier extends Notifier<LocationState> {
 }
 
 final locationProvider =
-    NotifierProvider.autoDispose<LocationNotifier, LocationState>(() {
+    NotifierProvider<LocationNotifier, LocationState>(() {
   return LocationNotifier();
 });
 

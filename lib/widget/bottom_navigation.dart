@@ -38,22 +38,22 @@ class CustomBottomNavigation extends ConsumerWidget {
               BottomNavigationBarItem(
                 icon: Icon(Icons.home_outlined, size: 24),
                 activeIcon: Icon(Icons.home, size: 24),
-                label: 'Home',
+                label: 'Trang chủ',
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.calendar_today_outlined, size: 24),
                 activeIcon: Icon(Icons.calendar_today, size: 24),
-                label: 'My Booking',
+                label: 'Booking của tôi',
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.chat_bubble_outline, size: 24),
-                activeIcon: Icon(Icons.chat_bubble, size: 24),
-                label: 'Message',
+                icon: Icon(Icons.policy_outlined, size: 24),
+                activeIcon: Icon(Icons.policy, size: 24),
+                label: 'Về chúng tôi',
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.person_outline, size: 24),
                 activeIcon: Icon(Icons.person, size: 24),
-                label: 'Profile',
+                label: 'Cá nhân',
               ),
             ],
             ),

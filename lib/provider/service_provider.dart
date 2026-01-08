@@ -99,7 +99,7 @@ class ServiceNotifier extends Notifier<ServiceState> {
 }
 
 final serviceProvider =
-    NotifierProvider.autoDispose<ServiceNotifier, ServiceState>(() {
+    NotifierProvider<ServiceNotifier, ServiceState>(() {
   return ServiceNotifier();
 });
 

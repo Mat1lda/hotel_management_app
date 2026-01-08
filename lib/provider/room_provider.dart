@@ -100,7 +100,7 @@ class RoomNotifier extends Notifier<RoomState> {
   }
 }
 
-final roomProvider = NotifierProvider.autoDispose<RoomNotifier, RoomState>(() {
+final roomProvider = NotifierProvider<RoomNotifier, RoomState>(() {
   return RoomNotifier();
 });
 

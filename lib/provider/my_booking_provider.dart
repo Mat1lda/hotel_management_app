@@ -48,6 +48,16 @@ class MyBookingState {
 class MyBookingNotifier extends Notifier<MyBookingState> {
   late final BookingService _bookingService;
 
+  bool _isCancelledStatus(String status) {
+    final s = status.toLowerCase().trim();
+    return s == 'cancelled' ||
+        s == 'canceled' ||
+        s == 'cancel' ||
+        s == 'đã hủy' ||
+        s == 'hủy' ||
+        s == 'da huy';
+  }
+
   @override
   MyBookingState build() {
     _bookingService = BookingService();
@@ -140,6 +150,67 @@ class MyBookingNotifier extends Notifier<MyBookingState> {
       return;
     }
     await initialize(userId: user.id, token: token);
+  }
+
+  Future<Map<String, dynamic>> cancelBill(BookingBillGroup group) async {
+    final auth = ref.read(authProvider);
+    final user = auth.user;
+    final token = user?.token;
+
+    if (auth.isLoggedIn != true || user == null || token == null || token.isEmpty) {
+      return {
+        'success': false,
+        'message': 'Vui lòng đăng nhập để thực hiện thao tác này',
+      };
+    }
+
+    if (group.bookings.isEmpty) {
+      return {
+        'success': false,
+        'message': 'Không có phòng để hủy',
+      };
+    }
+
+    if (_isCancelledStatus(group.paymentStatus)) {
+      return {
+        'success': false,
+        'message': 'Hóa đơn đã được hủy trước đó',
+      };
+    }
+
+    // Rule: chỉ cần "chưa check-in" là được hủy
+    final canCancel = group.bookings.every((b) => b.actualCheckInTime == null);
+    if (!canCancel) {
+      return {
+        'success': false,
+        'message': 'Không thể hủy vì đã có phòng check-in',
+      };
+    }
+
+    final failed = <String>[];
+    for (final b in group.bookings) {
+      final res = await _bookingService.cancelBooking(
+        bookingId: b.id,
+        token: token,
+      );
+      if (res['success'] != true) {
+        final msg = (res['message'] as String?)?.trim();
+        failed.add('Phòng ${b.roomNumber}: ${msg ?? 'Hủy thất bại'}');
+      }
+    }
+
+    if (failed.isNotEmpty) {
+      return {
+        'success': false,
+        'message': failed.join('\n'),
+      };
+    }
+
+    await refresh();
+    return {
+      'success': true,
+      'message': 'Đã hủy hóa đơn #${group.billId}',
+    };
   }
 }
 

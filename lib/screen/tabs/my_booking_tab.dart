@@ -5,7 +5,6 @@ import '../../utility/app_date_utils.dart';
 import '../../utility/custom_app_bar.dart';
 import '../../utility/navigation_utils.dart';
 import '../../utility/price_utils.dart';
-import '../../utility/search_header.dart';
 import '../../provider/auth_provider.dart';
 import '../../provider/my_booking_provider.dart';
 import '../../model/booking_model.dart';
@@ -47,26 +46,28 @@ class MyBookingTab extends ConsumerWidget {
         showBackButton: false,
         actions: [
           IconButton(
-            onPressed: () {},
-            icon: const Icon(
-              Icons.more_horiz,
-              color: AppColors.textPrimary,
-            ),
+            tooltip: 'Tải lại',
+            onPressed: bookingState.isLoading
+                ? null
+                : () => ref.read(myBookingProvider.notifier).refresh(),
+            icon: bookingState.isLoading
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: AppColors.primary,
+                    ),
+                  )
+                : const Icon(
+                    Icons.refresh,
+                    color: AppColors.textPrimary,
+                  ),
           ),
         ],
       ),
       body: Column(
         children: [
-          SearchHeader(
-            hintText: 'Tìm kiếm...',
-            margin: const EdgeInsets.all(16),
-            onChanged: (value) {
-              // Handle search for bookings
-            },
-            onFilterPressed: () {
-              // Handle filter for bookings
-            },
-          ),
           _buildTabBar(context, ref, bookingState),
           Expanded(
             child: _buildBookingList(context, ref, bookingState),
